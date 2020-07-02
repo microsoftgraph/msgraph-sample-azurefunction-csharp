@@ -64,15 +64,22 @@ You will also create a simple command line application to call the web APIs impl
 
 Before moving on, install some additional NuGet packages that you will use later.
 
-- [Microsoft.Extensions.Configuration.UserSecrets](https://github.com/aspnet/extensions) to read application configuration from the [.NET development secret store](https://docs.microsoft.com/aspnet/core/security/app-secrets).
-- [Microsoft.Identity.Client](https://www.nuget.org/packages/Microsoft.Identity.Client/) for authenticating and managing tokens.
+- [Microsoft.Azure.WebJobs.Extensions](https://www.nuget.org/packages/Microsoft.Azure.WebJobs.Extensions/) to get the latest version of the package to resolve [build warnings](https://github.com/Azure/azure-webjobs-sdk/issues/2386).
+- [Microsoft.Extensions.Configuration.UserSecrets](https://www.nuget.org/packages/Microsoft.Extensions.Configuration.UserSecrets) to read application configuration from the [.NET development secret store](https://docs.microsoft.com/aspnet/core/security/app-secrets).
 - [Microsoft.Graph](https://www.nuget.org/packages/Microsoft.Graph/) for making calls to Microsoft Graph.
+- [Microsoft.Identity.Client](https://www.nuget.org/packages/Microsoft.Identity.Client/) for authenticating and managing tokens.
+- [Microsoft.IdentityModel.Protocols.OpenIdConnect](https://www.nuget.org/packages/Microsoft.IdentityModel.Protocols.OpenIdConnect) for retrieving OpenID configuration for token validation.
+- [System.IdentityModel.Tokens.Jwt](https://www.nuget.org/packages/System.IdentityModel.Tokens.Jwt) for validating tokens sent to the web API.
 
 1. Change the current directory in your CLI to the **GraphTutorial** directory and run the following commands.
 
     ```Shell
-    dotnet add package Microsoft.Identity.Client --version 4.15.0
+    dotnet add package Microsoft.Azure.WebJobs.Extensions --version 3.0.6
+    dotnet add package Microsoft.Extensions.Configuration.UserSecrets --version 3.1.5
     dotnet add package Microsoft.Graph --version 3.8.0
+    dotnet add package Microsoft.Identity.Client --version 4.15.0
+    dotnet add package Microsoft.IdentityModel.Protocols.OpenIdConnect --version 6.7.1
+    dotnet add package System.IdentityModel.Tokens.Jwt --version 6.7.1
     ```
 
 1. Change the current directory in your CLI to the **InvokeAzureFunction** directory and run the following command.
@@ -140,6 +147,20 @@ In this section you will create a simple console-based menu.
                             break;
                     }
                 }
+            }
+
+            // Pretty-print a JSON string using System.Text.Json
+            private static string PrettyPrintJson(string uglyJson)
+            {
+                using var jsonDoc = JsonDocument.Parse(uglyJson);
+
+                var stream = new MemoryStream();
+                using (var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions{ Indented = true }))
+                {
+                    jsonDoc.WriteTo(jsonWriter);
+                }
+
+                return new System.Text.UTF8Encoding().GetString(stream.ToArray());
             }
         }
     }
