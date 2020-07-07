@@ -22,7 +22,7 @@ Start by adding authentication to the command-line application. This will allow 
     dotnet user-secrets init
     ```
 
-1. Add your application ID and a list of required scopes to the secret store using the following commands. Replace `YOUR_TEST_APP_APP_ID_HERE` with the application ID you created in the Azure portal for the **Graph Azure Function Test App**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal. Replace `YOUR_WEB_API_APP_ID_HERE` with the application ID for the **Graph Azure Function Web API**.
+1. Add your application ID, tenant ID, and Web app ID to the secret store using the following commands. Replace `YOUR_TEST_APP_APP_ID_HERE` with the application ID you created in the Azure portal for the **Graph Azure Function Test App**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal. Replace `YOUR_WEB_API_APP_ID_HERE` with the application ID for the **Graph Azure Function Web API**.
 
     ```Shell
     dotnet user-secrets set appId "YOUR_TEST_APP_APP_ID_HERE"
@@ -90,7 +90,7 @@ In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessag
     dotnet user-secrets init
     ```
 
-1. Add your application ID and a list of required scopes to the secret store using the following commands. Replace `YOUR_WEB_API_APP_ID_HERE` with the application ID for the **Graph Azure Function Web API**. Replace `YOUR_WEB_API_APP_SECRET_HERE` with the application secret you created in the Azure portal for the **Graph Azure Function Web API**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal.
+1. Add your application ID, secret, and tenant ID to the secret store using the following commands. Replace `YOUR_WEB_API_APP_ID_HERE` with the application ID for the **Graph Azure Function Web API**. Replace `YOUR_WEB_API_APP_SECRET_HERE` with the application secret you created in the Azure portal for the **Graph Azure Function Web API**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal.
 
     ```Shell
     dotnet user-secrets set webApiId "YOUR_WEB_API_APP_ID_HERE"

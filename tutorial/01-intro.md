@@ -12,7 +12,8 @@ Before you start this tutorial, you should have the following tools installed on
 - [.NET Core SDK](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org/)
 - [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools)
-- [Azure CLI](/cli/azure/install-azure-cli)
+- [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
+- [ngrok](https://ngrok.com/)
 
 You should also have a Microsoft work or school account, with access to a global administrator account in the same organization. If you don't have a Microsoft account, you can [sign up for the Office 365 Developer Program](https://developer.microsoft.com/office/dev-program) to get a free Office 365 subscription.
 
@@ -23,6 +24,7 @@ You should also have a Microsoft work or school account, with access to a global
 > - Node.js 12.16.1
 > - Azure Functions Core Tools 3.0.2630
 > - Azure CLI 2.8.0
+> - ngrok 2.3.35
 
 ## Feedback
 

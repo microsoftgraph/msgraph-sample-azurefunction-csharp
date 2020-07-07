@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace GraphTutorial.Authentication
 {
-    public class OnBehalfOfAuthProvider
+    public class ClientCredentialsAuthProvider
     {
         private IConfidentialClientApplication _msalClient;
         private string[] _scopes;
         private ILogger _logger;
 
-        public OnBehalfOfAuthProvider(string appId, string clientSecret, string tenantId, string[] scopes, ILogger logger)
+        public ClientCredentialsAuthProvider(string appId, string clientSecret, string tenantId, string[] scopes, ILogger logger)
         {
             _scopes = scopes;
             _logger = logger;
@@ -28,26 +28,22 @@ namespace GraphTutorial.Authentication
                 .Build();
         }
 
-        public async Task<string> GetAccessToken(string userToken)
+        public async Task<string> GetAccessToken()
         {
             try
             {
-                // Use the token sent by the calling client as a
-                // user assertion
-                var userAssertion = new UserAssertion(userToken);
-
-                // Invoke on-behalf-of flow
+                // Invoke client credentials flow
                 var result = await _msalClient
-                  .AcquireTokenOnBehalfOf(_scopes, userAssertion)
+                  .AcquireTokenForClient(_scopes)
                   .ExecuteAsync();
 
-                _logger.LogInformation($"User access token: {result.AccessToken}");
+                _logger.LogInformation($"App-only access token: {result.AccessToken}");
 
                 return result.AccessToken;
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Error getting access token via on-behalf-of flow");
+                _logger.LogError(exception, "Error getting access token via client credentials flow");
                 return null;
             }
         }
