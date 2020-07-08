@@ -139,7 +139,7 @@ namespace InvokeAzureFunction
                 Console.WriteLine($"\nMessage: {PrettyPrintJson(message)}\n");
             }
         }
-        // <//GetNewestMessageSnippet>
+        // </GetNewestMessageSnippet>
 
         // <CreateSubscriptionSnippet>
         private static async Task CreateSubscription(string ngrokProxy)
