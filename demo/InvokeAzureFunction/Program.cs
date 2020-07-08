@@ -5,6 +5,7 @@ using InvokeAzureFunction.Authentication;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -17,6 +18,20 @@ namespace InvokeAzureFunction
         static async Task Main(string[] args)
         {
             Console.WriteLine("Azure Function Graph Tutorial\n");
+
+            // Prompt for ngrok URL
+            string ngrokProxy = "";
+            while (string.IsNullOrEmpty(ngrokProxy))
+            {
+                Console.Write("Enter https ngrok URL: ");
+                ngrokProxy = Console.ReadLine();
+
+                if (!Uri.IsWellFormedUriString(ngrokProxy, UriKind.Absolute))
+                {
+                    Console.WriteLine("Invalid input, please enter URL in form https://418ead6a47a6.ngrok.io");
+                    ngrokProxy = "";
+                }
+            }
 
             // <InitializationSnippet>
             var appConfig = LoadAppSettings();
@@ -60,25 +75,34 @@ namespace InvokeAzureFunction
                     choice = -1;
                 }
 
-                switch(choice)
+                try
                 {
-                    case 0:
-                        // Exit the program
-                        Console.WriteLine("Goodbye...");
-                        break;
-                    case 1:
-                        // Get signed-in user's newest email message
-                        await GetNewestMessage(accessToken);
-                        break;
-                    case 2:
-                        // Subscribe
-                        break;
-                    case 3:
-                        // Unsubscribe
-                        break;
-                    default:
-                        Console.WriteLine("Invalid choice! Please try again.");
-                        break;
+                    switch(choice)
+                    {
+                        case 0:
+                            // Exit the program
+                            Console.WriteLine("Goodbye...");
+                            break;
+                        case 1:
+                            // Get signed-in user's newest email message
+                            await GetNewestMessage(accessToken, ngrokProxy);
+                            break;
+                        case 2:
+                            // Subscribe
+                            await CreateSubscription(ngrokProxy);
+                            break;
+                        case 3:
+                            // Unsubscribe
+                            await DeleteSubscription(ngrokProxy);
+                            break;
+                        default:
+                            Console.WriteLine("Invalid choice! Please try again.");
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"\nERROR: {ex.Message}\n");
                 }
             }
         }
@@ -98,10 +122,11 @@ namespace InvokeAzureFunction
         }
 
         // <GetNewestMessageSnippet>
-        private static async Task GetNewestMessage(string token)
+        private static async Task GetNewestMessage(string token, string ngrokProxy)
         {
             // Do a GET to the Web API
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:7071/api/GetMyNewestMessage");
+            var request = new HttpRequestMessage(HttpMethod.Get,
+                $"{ngrokProxy}/api/GetMyNewestMessage");
             // Add token in Authorization header
             request.Headers.Authorization = new AuthenticationHeaderValue("bearer", token);
 
@@ -116,8 +141,67 @@ namespace InvokeAzureFunction
         }
         // <//GetNewestMessageSnippet>
 
+        // <CreateSubscriptionSnippet>
+        private static async Task CreateSubscription(string ngrokProxy)
+        {
+            // Prompt user for user
+            Console.Write("User to subscribe for: ");
+            var userId = Console.ReadLine();
+
+            var payload = $"{{\"requestType\": \"subscribe\" ,\"userId\": \"{userId}\", \"ngrokProxy\": \"{ngrokProxy}\"}}";
+
+            var request = new HttpRequestMessage(HttpMethod.Post,
+                $"{ngrokProxy}/api/SetSubscription");
+            request.Content = new StringContent(payload);
+            request.Content.Headers.ContentType.MediaType = "application/json";
+
+            using (var client = new HttpClient())
+            {
+                var response = await client.SendAsync(request);
+
+                var subscription = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"\nSubscription created: {PrettyPrintJson(subscription)}\n");
+            }
+        }
+        // </CreateSubscriptionSnippet>
+
+        // <DeleteSubscriptionSnippet>
+        private static async Task DeleteSubscription(string ngrokProxy)
+        {
+            // Prompt for subscription ID
+            Console.Write("Subscription ID: ");
+            var subscriptionId = Console.ReadLine();
+
+            var payload = $"{{\"requestType\": \"unsubscribe\" ,\"subscriptionId\": \"{subscriptionId}\"}}";
+
+            var request = new HttpRequestMessage(HttpMethod.Post,
+                $"{ngrokProxy}/api/SetSubscription");
+            request.Content = new StringContent(payload);
+            request.Content.Headers.ContentType.MediaType = "application/json";
+
+            using (var client = new HttpClient())
+            {
+                var response = await client.SendAsync(request);
+
+                if (response.StatusCode == HttpStatusCode.Accepted)
+                {
+                    Console.WriteLine("Subscription deleted");
+                }
+                else
+                {
+                    Console.WriteLine($"Request returned {response.StatusCode}");
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        Console.WriteLine(errorMessage);
+                    }
+                }
+            }
+        }
+        // </DeleteSubscriptionSnippet>
+
         // <LoadAppSettingsSnippet>
-        static IConfigurationRoot LoadAppSettings()
+        private static IConfigurationRoot LoadAppSettings()
         {
             var appConfig = new ConfigurationBuilder()
                 .AddUserSecrets<Program>()

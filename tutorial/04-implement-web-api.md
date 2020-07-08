@@ -66,7 +66,7 @@ In this section you will update the application to call the `GetAccessToken` fun
     Console.WriteLine($"Access token: {accessToken}\n");
     ```
 
-1. Build and run the app. The application displays a URL and device code.
+1. Build and run the app. When prompted for an ngrok URL, enter `http://loalhost`. The application displays a URL and device code.
 
     ```Shell
     PS C:\Source\InvokeAzureFunction> dotnet run
@@ -118,15 +118,9 @@ In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessag
 
 ## Call the Web API from the test app
 
-1. Open **./InvokeAzureFunction/Program.cs** and add the following function to the **Program** class.
+1. Open **./InvokeAzureFunction/Program.cs** and replace the existing `GetNewestMessage` function with the following.
 
     :::code language="csharp" source="../demo/InvokeAzureFunction/Program.cs" id="GetNewestMessageSnippet":::
-
-1. Add the following line of code just after the `// Get signed-in user's newest email message` line:
-
-    ```csharp
-    await GetNewestMessage(accessToken);
-    ```
 
 ## Test the Web API
 
@@ -136,10 +130,25 @@ In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessag
     func start
     ```
 
-1. Open a second CLI window and change the current directory to the **./InvokeAzureFunction** directory. Run the following command to run the test application.
+1. Open a second CLI window and run ngrok with the following command.
+
+    ```Shell
+    ngrok http 7071
+    ```
+
+    Copy the **Forwarding** url that uses the HTTPS scheme.
+
+    ![A screenshot of the ngrok output](./images/ngrok-output.png)
+
+1. Open a third CLI window and change the current directory to the **./InvokeAzureFunction** directory. Run the following command to run the test application.
 
     ```Shell
     dotnet run
     ```
 
+1. When prompted for the ngrok URL, enter the value you copied from the ngrok output.
+
 1. Follow the prompt to sign in to the test app. Once signed in, choose **1. Display the newest message in my inbox**. The app displays JSON output of the user's newest message.
+
+> [!TIP]
+> Since the test application is sending all requests to the Azure Function through ngrok, you can view the HTTP requests and responses by opening `http://localhost:4040` in your browser.

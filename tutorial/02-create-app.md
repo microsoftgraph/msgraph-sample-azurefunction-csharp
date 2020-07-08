@@ -112,6 +112,20 @@ In this section you will create a simple console-based menu.
             {
                 Console.WriteLine("Azure Function Graph Tutorial\n");
 
+                // Prompt for ngrok URL
+                string ngrokProxy = "";
+                while (string.IsNullOrEmpty(ngrokProxy))
+                {
+                    Console.Write("Enter https ngrok URL: ");
+                    ngrokProxy = Console.ReadLine();
+
+                    if (!Uri.IsWellFormedUriString(ngrokProxy, UriKind.Absolute))
+                    {
+                        Console.WriteLine("Invalid input, please enter URL in form https://418ead6a47a6.ngrok.io");
+                        ngrokProxy = "";
+                    }
+                }
+
                 int choice = -1;
 
                 while (choice != 0) {
@@ -131,26 +145,48 @@ In this section you will create a simple console-based menu.
                         choice = -1;
                     }
 
-                    switch(choice)
+                    try
                     {
-                        case 0:
-                            // Exit the program
-                            Console.WriteLine("Goodbye...");
-                            break;
-                        case 1:
-                            // Get signed-in user's newest email message
-                            break;
-                        case 2:
-                            // Subscribe
-                            break;
-                        case 3:
-                            // Unsubscribe
-                            break;
-                        default:
-                            Console.WriteLine("Invalid choice! Please try again.");
-                            break;
+                        switch(choice)
+                        {
+                            case 0:
+                                // Exit the program
+                                Console.WriteLine("Goodbye...");
+                                break;
+                            case 1:
+                                // Get signed-in user's newest email message
+                                await GetNewestMessage(accessToken);
+                                break;
+                            case 2:
+                                // Subscribe
+                                await CreateSubscription(ngrokProxy);
+                                break;
+                            case 3:
+                                // Unsubscribe
+                                await DeleteSubscription(ngrokProxy);
+                                break;
+                            default:
+                                Console.WriteLine("Invalid choice! Please try again.");
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"\nERROR: {ex.Message}\n");
                     }
                 }
+            }
+
+            private static async Task GetNewestMessage(string token, string ngrokProxy)
+            {
+            }
+
+            private static async Task CreateSubscription(string ngrokProxy)
+            {
+            }
+
+            private static async Task DeleteSubscription(string ngrokProxy)
+            {
             }
 
             // Pretty-print a JSON string using System.Text.Json
