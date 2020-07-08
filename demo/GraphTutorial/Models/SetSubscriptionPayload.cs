@@ -15,7 +15,6 @@ namespace GraphTutorial.Models
         // If subscribing, the user ID to subscribe to
         // Can be object ID of user, or userPrincipalName
         public string UserId { get;set; }
-
         // If subscribing, the ngrok URL to use for
         // the notification URL
         public string NgrokProxy { get;set; }
