@@ -29,6 +29,13 @@ In this section you'll implement the client credentials flow in the Azure Functi
 
     :::code language="csharp" source="../demo/GraphTutorial/Authentication/ClientCredentialsAuthProvider.cs" id="AuthProviderSnippet":::
 
+#### Review the code in ClientCredentialsAuthProvider.cs
+
+Take a moment to consider what the code in **ClientCredentialsAuthProvider.cs** does.
+
+- In the constructor, it initializes a **ConfidentialClientApplication** from the `Microsoft.Identity.Client` package. It uses the `WithAuthority(AadAuthorityAudience.AzureAdMyOrg, true)` and `.WithTenantId(tenantId)` functions to restrict the login audience to only the specified Microsoft 365 organization.
+- In the `GetAccessToken` function, it calls `AcquireTokenForClient` to get a token for the application. The client credentials token flow is always non-interactive.
+
 ## Implement Notify function
 
 In this section you'll implement the `Notify` function, which will be used as the notification URL for change notifications.
@@ -51,9 +58,11 @@ In this section you'll implement the `Notify` function, which will be used as th
 
     :::code language="csharp" source="../demo/GraphTutorial/Notify.cs" id="NotifySnippet":::
 
-Consider what this code is doing.
+### Review the code in Notify.cs
 
-- The `Notify` function checks for the presence of a `validationToken` query parameter. If that parameter is present, it processes the request as a [validation request](https://docs.microsoft.com/graph/webhooks#notification-endpoint-validation), and responds accordingly.
+Take a moment to consider what the code in **Notify.cs** does.
+
+- The `Run` function checks for the presence of a `validationToken` query parameter. If that parameter is present, it processes the request as a [validation request](https://docs.microsoft.com/graph/webhooks#notification-endpoint-validation), and responds accordingly.
 - If the request is not a validation request, the JSON payload is deserialized into a `NotificationList`.
 - Each notification in the list is checked for the expected client state value, and is processed.
 - The message that triggered the notification is retrieved with Microsoft Graph.
@@ -69,6 +78,15 @@ In this section, you'll implement the SetSubscription function. This function wi
 1. Open **./GraphTutorial/SetSubscription.cs** and replace its entire contents with the following.
 
     :::code language="csharp" source="../demo/GraphTutorial/SetSubscription.cs" id="SetSubscriptionSnippet":::
+
+### Review the code in SetSubscription.cs
+
+Take a moment to consider what the code in **SetSubscription.cs** does.
+
+- The `Run` function reads the JSON payload sent in the POST request to determine the request type (subscribe or unsubscribe), the ngrok proxy URL, the user ID to subscribe for, and the subscription ID to unsubscribe.
+- It initializes a client credentials auth provider and gets an access token.
+- If the request is a subscribe request, it uses the Microsoft Graph SDK to create a new subscription in the specified user's inbox. The subscription will notify when messages are created or updated. The new subscription is returned in the JSON payload of the response.
+- If the request is an unsubscribe request, it uses the Microsoft Graph SDK to delete the specified subscription.
 
 ## Call SetSubscription from the test app
 

@@ -42,6 +42,13 @@ In this section you will create an authentication provider that can be used with
 
     :::code language="csharp" source="../demo/InvokeAzureFunction/Authentication/DeviceCodeAuthProvider.cs" id="AuthProviderSnippet":::
 
+##### Review the code in DeviceCodeAuthProvider.cs
+
+Take a moment to consider what the code in **DeviceCodeAuthProvider.cs** does.
+
+- In the constructor, it initializes a **PublicClientApplication** from the `Microsoft.Identity.Client` package. It uses the `WithAuthority(AadAuthorityAudience.AzureAdMyOrg, true)` and `.WithTenantId(tenantId)` functions to restrict the login audience to only the specified Microsoft 365 organization.
+- In the `GetAccessToken` function, it calls `AcquireTokenSilent` to get a token without any user interaction if the user is already logged in. If not, it calls `AcquireTokenWithDeviceCode` to prompt the user to login using a browser.
+
 ### Sign in and display the access token
 
 In this section you will update the application to call the `GetAccessToken` function, which will sign in the user. You will also add code to display the token.
@@ -102,6 +109,8 @@ In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessag
 
     :::code language="csharp" source="../demo/GraphTutorial/Startup.cs" id="StartupSnippet":::
 
+    This code will enable [dependency injection](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-dependency-injection) in your Azure Functions, exposing the `IConfiguration` object.
+
 ### Create an on-behalf-of authentication provider
 
 1. Create a new directory in the **GraphTutorial** directory named **Authentication**.
@@ -110,11 +119,29 @@ In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessag
 
     :::code language="csharp" source="../demo/GraphTutorial/Authentication/OnBehalfOfAuthProvider.cs" id="AuthProviderSnippet":::
 
+#### Review the code in OnBehalfOfAuthProvider.cs
+
+Take a moment to consider what the code in **OnBehalfOfAuthProvider.cs** does.
+
+- In the constructor, it initializes a **ConfidentialClientApplication** from the `Microsoft.Identity.Client` package. It uses the `WithAuthority(AadAuthorityAudience.AzureAdMyOrg, true)` and `.WithTenantId(tenantId)` functions to restrict the login audience to only the specified Microsoft 365 organization.
+- In the `GetAccessToken` function, it uses the bearer token sent by the test app to the Web API to generate a user assertion. It then uses that user assertion to get a Graph-compatible token using `AcquireTokenOnBehalfOf`.
+
 ### Implement GetMyNewestMessage function
 
 1. Open **./GraphTutorial/GetMyNewestMessage.cs** and replace its entire contents with the following.
 
     :::code language="csharp" source="../demo/GraphTutorial/GetMyNewestMessage.cs" id="GetMyNewestMessageSnippet":::
+
+#### Review the code in GetMyNewestMessage.cs
+
+Take a moment to consider what the code in **GetMyNewestMessage.cs** does.
+
+- In the constructor, it saves the `IConfiguration` object passed in via dependency injection.
+- In the `Run` function, it does the following:
+  - Validates the required configuration values are present in the `IConfiguration` object.
+  - Validates the bearer token and returns a `401` status code if the token is invalid.
+  - Creates the on-behalf-of auth provider and gets an access token for Microsoft Graph.
+  - Uses the Microsoft Graph SDK to get the newest message from the user's inbox and returns it as a JSON body in the response.
 
 ## Call the Web API from the test app
 
