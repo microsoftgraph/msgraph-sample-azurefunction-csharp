@@ -134,30 +134,7 @@ In this section, you'll implement the `CreateSubscription` and `DeleteSubscripti
       "@odata.type": "microsoft.graph.subscription",
       "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#subscriptions/$entity",
       "responseHeaders": {
-        "Cache-Control": [
-          "private"
-        ],
-        "Location": [
-          "https://subscriptionstore.windows.net/1.0/NA/subscriptions(\u00272dee9f50-13d2-44f2-b3f8-691e0498ec45\u0027)"
-        ],
-        "request-id": [
-          "91368db4-b7a2-4265-a5ee-bfdded4a926c"
-        ],
-        "client-request-id": [
-          "91368db4-b7a2-4265-a5ee-bfdded4a926c"
-        ],
-        "x-ms-ags-diagnostic": [
-          "{\u0022ServerInfo\u0022:{\u0022DataCenter\u0022:\u0022South Central US\u0022,\u0022Slice\u0022:\u0022SliceC\u0022,\u0022Ring\u0022:\u00224\u0022,\u0022ScaleUnit\u0022:\u0022003\u0022,\u0022RoleInstance\u0022:\u0022AGSFE_IN_11\u0022}}"
-        ],
-        "OData-Version": [
-          "4.0"
-        ],
-        "Strict-Transport-Security": [
-          "max-age=31536000"
-        ],
-        "Date": [
-          "Wed, 08 Jul 2020 19:16:23 GMT"
-        ]
+        ...
       },
       "statusCode": "Created"
     }
