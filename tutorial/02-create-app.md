@@ -24,6 +24,14 @@ You will also create a simple JavaScript single-page application (SPA) to call t
     func new --name Notify --template "HTTP trigger" --language C#
     ```
 
+1. Open **local.settings.json** and add the following to the file to allow CORS from `http://localhost:8080`, the URL for the test application.
+
+    ```json
+    "Host": {
+      "CORS": "http://localhost:8080"
+    }
+    ```
+
 1. Run the following command to run the project locally.
 
     ```Shell

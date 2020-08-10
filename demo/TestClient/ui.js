@@ -74,11 +74,8 @@ function showAccountNav(user) {
     const menu = createElement('div', 'dropdown-menu dropdown-menu-right');
     dropdown.appendChild(menu);
 
-    const userName = createElement('h5', 'dropdown-item-text mb-0', user.displayName);
+    const userName = createElement('h5', 'dropdown-item-text mb-0', user);
     menu.appendChild(userName);
-
-    const userEmail = createElement('p', 'dropdown-item-text text-muted mb-0', user.mail || user.userPrincipalName);
-    menu.appendChild(userEmail);
 
     const divider = createElement('div', 'dropdown-divider');
     menu.appendChild(divider);
@@ -110,7 +107,7 @@ function showWelcomeMessage(user) {
 
   if (user) {
     // Welcome the user by name
-    const welcomeMessage = createElement('h4', null, `Welcome ${user.displayName}!`);
+    const welcomeMessage = createElement('h4', null, `Welcome ${user}!`);
     jumbotron.appendChild(welcomeMessage);
 
     const callToAction = createElement('p', null,
@@ -250,7 +247,11 @@ function updatePage(view, data) {
   }
 
   // Get the user name from the session
-  const user = JSON.parse(sessionStorage.getItem('msal-userName'));
+  const user = sessionStorage.getItem('msal-userName');
+  if (!user && view !== Views.error)
+  {
+    view = Views.home;
+  }
 
   showAccountNav(user);
   showAuthenticatedNav(user, view);

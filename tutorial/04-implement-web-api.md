@@ -1,93 +1,49 @@
 <!-- markdownlint-disable MD002 MD041 -->
 
-In this exercise you will finish implementing the Web API Azure Function `GetMyNewestMessage` and the command-line test application that calls that API.
+In this exercise you will finish implementing the Azure Function `GetMyNewestMessage` and update the test client to call the function.
 
-The Web API uses the [on-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow). The basic order of events in this flow are:
+The Azure Function uses the [on-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow). The basic order of events in this flow are:
 
-- The test application uses an interactive auth flow to allow the user to sign in and grant consent. It gets back a token that is scoped to the Web API. The token does **NOT** contain any Microsoft Graph scopes.
-- The test application invokes the Web API, sending its access token in the `Authorization` header.
-- The Web API validates the token, then exchanges that token for a second access token that contains Microsoft Graph scopes.
-- The Web API calls Microsoft Graph on the user's behalf using the second access token.
+- The test application uses an interactive auth flow to allow the user to sign in and grant consent. It gets back a token that is scoped to the Azure Function. The token does **NOT** contain any Microsoft Graph scopes.
+- The test application invokes the Azure Function, sending its access token in the `Authorization` header.
+- The Azure Function validates the token, then exchanges that token for a second access token that contains Microsoft Graph scopes.
+- The Azure Function calls Microsoft Graph on the user's behalf using the second access token.
 
 > [!IMPORTANT]
 > To avoid storing the application ID and secret in source, you will use the [.NET Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets) to store these values. The Secret Manager is for development purposes only, production apps should use a trusted secret manager for storing secrets.
 
-## Add authentication to the command-line application
+## Add authentication to the single page application
 
-Start by adding authentication to the command-line application. This will allow the application to get an access token granting access to call the Web API. Because this is a command-line application, it will use the [device code flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code).
+Start by adding authentication to the SPA. This will allow the application to get an access token granting access to call the Azure Function. Because this is a SPA, it will use the [authorization code flow with PKCE](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow).
 
-1. Initialize the .NET development secret store by opening your CLI in the directory that contains **InvokeAzureFunctions.csproj** and running the following command.
+1. Create a new file in the **TestClient** directory named **config.js** and add the following code.
 
-    ```Shell
-    dotnet user-secrets init
-    ```
+    :::code language="javascript" source="../demo/graph-tutorial/config.example.js" id="msalConfigSnippet":::
 
-1. Add your application ID, tenant ID, and Web app ID to the secret store using the following commands. Replace `YOUR_TEST_APP_APP_ID_HERE` with the application ID you created in the Azure portal for the **Graph Azure Function Test App**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal. Replace `YOUR_WEB_API_APP_ID_HERE` with the application ID for the **Graph Azure Function Web API**.
+    Replace `YOUR_TEST_APP_APP_ID_HERE` with the application ID you created in the Azure portal for the **Graph Azure Function Test App**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal. Replace `YOUR_AZURE_FUNCTION_APP_ID_HERE` with the application ID for the **Graph Azure Function**.
 
-    ```Shell
-    dotnet user-secrets set appId "YOUR_TEST_APP_APP_ID_HERE"
-    dotnet user-secrets set tenantId "YOUR_TENANT_ID_HERE"
-    dotnet user-secrets set webApiId "YOUR_WEB_API_APP_ID_HERE"
-    ```
+    > [!IMPORTANT]
+    > If you're using source control such as git, now would be a good time to exclude the **config.js** file from source control to avoid inadvertently leaking your app IDs and tenant ID.
 
-### Implement sign-in
+1. Create a new file in the **TestClient** directory named **auth.js** and add the following code.
 
-In this section you will create an authentication provider that can be used with the Graph SDK and can also be used to explicitly request an access token by using the device code flow.
+    :::code language="javascript" source="../demo/TestClient/auth.js" id="signInSignOutSnippet":::
 
-#### Create a device code authentication provider
+    Consider what this code does.
 
-1. Create a new directory in the **InvokeAzureFunctions** directory named **Authentication**.
+    - It initializes a `PublicClientApplication` using the values stored in **config.js**.
+    - It uses `loginPopup` to sign the user in, using the permission scope for the Azure Function.
+    - It stores the user's username in the session.
 
-1. Create a new file in the **Authentication** directory named **DeviceCodeAuthProvider.cs** and add the following code to that file.
+    > [!IMPORTANT]
+    > Since the app uses `loginPopup`, you may need to change your browser's pop-up blocker to allow pop-ups from `http://localhost:8080`.
 
-    :::code language="csharp" source="../demo/InvokeAzureFunction/Authentication/DeviceCodeAuthProvider.cs" id="AuthProviderSnippet":::
-
-##### Review the code in DeviceCodeAuthProvider.cs
-
-Take a moment to consider what the code in **DeviceCodeAuthProvider.cs** does.
-
-- In the constructor, it initializes a **PublicClientApplication** from the `Microsoft.Identity.Client` package. It uses the `WithAuthority(AadAuthorityAudience.AzureAdMyOrg, true)` and `.WithTenantId(tenantId)` functions to restrict the login audience to only the specified Microsoft 365 organization.
-- In the `GetAccessToken` function, it calls `AcquireTokenSilent` to get a token without any user interaction if the user is already logged in. If not, it calls `AcquireTokenWithDeviceCode` to prompt the user to login using a browser.
-
-### Sign in and display the access token
-
-In this section you will update the application to call the `GetAccessToken` function, which will sign in the user. You will also add code to display the token.
-
-1. Open the **./InvokeAzureFunction/Program.cs** file and add the following `using` statement to the top of the file.
-
-    ```csharp
-    using InvokeAzureFunction.Authentication;
-    ```
-
-1. Add the following function to the `Program` class.
-
-    :::code language="csharp" source="../demo/InvokeAzureFunction/Program.cs" id="LoadAppSettingsSnippet":::
-
-1. Add the following code to the `Main` function immediately after the `Console.WriteLine("Azure Function Graph Tutorial\n");` line.
-
-    :::code language="csharp" source="../demo/InvokeAzureFunction/Program.cs" id="InitializationSnippet":::
-
-1. Add the following code to the `Main` function immediately after the `// Display access token` line.
-
-    ```csharp
-    Console.WriteLine($"Access token: {accessToken}\n");
-    ```
-
-1. Build and run the app. When prompted for an ngrok URL, enter `http://loalhost`. The application displays a URL and device code.
-
-    ```Shell
-    PS C:\Source\InvokeAzureFunction> dotnet run
-    Azure Function Graph Tutorial
-
-    To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code F7CG945YZ to authenticate.
-    ```
-
-1. Open a browser and browse to the URL displayed. Enter the provided code and sign in. Once completed, return to the application to see the access token.
+1. Refresh the page and sign in. The page should update with the user name, indicating that the sign in was successful.
 
 > [!TIP]
-> You can parse the access token at [https://jwt.ms](https://jwt.ms) and confirm that the `aud` claim is the app ID for the Web API, and that the `scp` claim contains the Web API's permission scope, not Microsoft Graph.
+> You can parse the access token at [https://jwt.ms](https://jwt.ms) and confirm that the `aud` claim is the app ID for the Azure Function, and that the `scp` claim contains the Azure Function's permission scope, not Microsoft Graph.
 
-## Add authentication to the Web API
+## Add authentication to the Azure Function
 
 In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessage` Azure Function to get an access token compatible with Microsoft Graph.
 
@@ -97,7 +53,7 @@ In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessag
     dotnet user-secrets init
     ```
 
-1. Add your application ID, secret, and tenant ID to the secret store using the following commands. Replace `YOUR_WEB_API_APP_ID_HERE` with the application ID for the **Graph Azure Function Web API**. Replace `YOUR_WEB_API_APP_SECRET_HERE` with the application secret you created in the Azure portal for the **Graph Azure Function Web API**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal.
+1. Add your application ID, secret, and tenant ID to the secret store using the following commands. Replace `YOUR_WEB_API_APP_ID_HERE` with the application ID for the **Graph Azure Function**. Replace `YOUR_WEB_API_APP_SECRET_HERE` with the application secret you created in the Azure portal for the **Graph Azure Function**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal.
 
     ```Shell
     dotnet user-secrets set webApiId "YOUR_WEB_API_APP_ID_HERE"
@@ -124,7 +80,7 @@ In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessag
 Take a moment to consider what the code in **OnBehalfOfAuthProvider.cs** does.
 
 - In the constructor, it initializes a **ConfidentialClientApplication** from the `Microsoft.Identity.Client` package. It uses the `WithAuthority(AadAuthorityAudience.AzureAdMyOrg, true)` and `.WithTenantId(tenantId)` functions to restrict the login audience to only the specified Microsoft 365 organization.
-- In the `GetAccessToken` function, it uses the bearer token sent by the test app to the Web API to generate a user assertion. It then uses that user assertion to get a Graph-compatible token using `AcquireTokenOnBehalfOf`.
+- In the `GetAccessToken` function, it uses the bearer token sent by the test app to the Azure Function to generate a user assertion. It then uses that user assertion to get a Graph-compatible token using `AcquireTokenOnBehalfOf`.
 
 ### Implement GetMyNewestMessage function
 
@@ -143,13 +99,20 @@ Take a moment to consider what the code in **GetMyNewestMessage.cs** does.
   - Creates the on-behalf-of auth provider and gets an access token for Microsoft Graph.
   - Uses the Microsoft Graph SDK to get the newest message from the user's inbox and returns it as a JSON body in the response.
 
-## Call the Web API from the test app
+## Call the Azure Function from the test app
 
-1. Open **./InvokeAzureFunction/Program.cs** and replace the existing `GetNewestMessage` function with the following.
+1. Open **auth.js** and add the following function to get an access token.
 
-    :::code language="csharp" source="../demo/InvokeAzureFunction/Program.cs" id="GetNewestMessageSnippet":::
+    :::code language="javascript" source="../demo/TestClient/auth.js" id="getTokenSnippet":::
 
-## Test the Web API
+    Consider what this code does.
+
+    - It first attempts to get an access token silently, without user interaction. Since the user should already be signed in, MSAL should have tokens for the user in its cache.
+    - If that fails with an error that indicates the user needs to interact, it attempts to get a token interactively.
+
+1. Create a new file in the **TestClient** directory named **azurefunctions.js** and add the following code.
+
+    :::code language="javascript" source="../demo/TestClient/azurefunctions.js" id="getLatestMessageSnippet":::
 
 1. Change the current directory in your CLI to the **./GraphTutorial** directory and run the following command to start the Azure Function locally.
 
@@ -157,25 +120,10 @@ Take a moment to consider what the code in **GetMyNewestMessage.cs** does.
     func start
     ```
 
-1. Open a second CLI window and run ngrok with the following command.
+1. If not already serving the SPA, open a second CLI window and change the current directory to the **./TestClient** directory. Run the following command to run the test application.
 
     ```Shell
-    ngrok http 7071
+    dotnet serve -h "Cache-Control: no-cache, no-store, must-revalidate"
     ```
 
-    Copy the **Forwarding** url that uses the HTTPS scheme.
-
-    ![A screenshot of the ngrok output](./images/ngrok-output.png)
-
-1. Open a third CLI window and change the current directory to the **./InvokeAzureFunction** directory. Run the following command to run the test application.
-
-    ```Shell
-    dotnet run
-    ```
-
-1. When prompted for the ngrok URL, enter the value you copied from the ngrok output.
-
-1. Follow the prompt to sign in to the test app. Once signed in, choose **1. Display the newest message in my inbox**. The app displays JSON output of the user's newest message.
-
-> [!TIP]
-> Since the test application is sending all requests to the Azure Function through ngrok, you can view the HTTP requests and responses by opening `http://localhost:4040` in your browser.
+1. Open your browser and navigate to `http://localhost:8080`. Sign in and select the **Latest Message** navigation item. The app displays information about the newest message in the user's inbox.
