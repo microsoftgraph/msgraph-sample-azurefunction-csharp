@@ -10,8 +10,7 @@ This tutorial teaches you how to build an Azure Function that uses the Microsoft
 Before you start this tutorial, you should have the following tools installed on your development machine.
 
 - [.NET Core SDK](https://dotnet.microsoft.com/download)
-- [Node.js](https://nodejs.org/)
-- [Azure Functions Core Tools](https://www.npmjs.com/package/azure-functions-core-tools)
+- [Azure Functions Core Tools](https://docs.microsoft.com/azure/azure-functions/functions-run-local)
 - [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
 - [ngrok](https://ngrok.com/)
 
@@ -21,7 +20,6 @@ You should also have a Microsoft work or school account, with access to a global
 > This tutorial was written with the following versions of the above tools. The steps in this guide may work with other versions, but that has not been tested.
 >
 > - .NET Core SDK 3.1.301
-> - Node.js 12.16.1
 > - Azure Functions Core Tools 3.0.2630
 > - Azure CLI 2.8.0
 > - ngrok 2.3.35
