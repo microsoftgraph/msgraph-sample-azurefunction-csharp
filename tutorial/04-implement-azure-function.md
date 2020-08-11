@@ -53,11 +53,11 @@ In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessag
     dotnet user-secrets init
     ```
 
-1. Add your application ID, secret, and tenant ID to the secret store using the following commands. Replace `YOUR_WEB_API_APP_ID_HERE` with the application ID for the **Graph Azure Function**. Replace `YOUR_WEB_API_APP_SECRET_HERE` with the application secret you created in the Azure portal for the **Graph Azure Function**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal.
+1. Add your application ID, secret, and tenant ID to the secret store using the following commands. Replace `YOUR_API_FUNCTION_APP_ID_HERE` with the application ID for the **Graph Azure Function**. Replace `YOUR_API_FUNCTION_APP_SECRET_HERE` with the application secret you created in the Azure portal for the **Graph Azure Function**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal.
 
     ```Shell
-    dotnet user-secrets set webApiId "YOUR_WEB_API_APP_ID_HERE"
-    dotnet user-secrets set webApiSecret "YOUR_WEB_API_APP_SECRET_HERE"
+    dotnet user-secrets set apiFunctionId "YOUR_API_FUNCTION_APP_ID_HERE"
+    dotnet user-secrets set apiFunctionSecret "YOUR_API_FUNCTION_APP_SECRET_HERE"
     dotnet user-secrets set tenantId "YOUR_TENANT_ID_HERE"
     ```
 
@@ -83,6 +83,10 @@ Take a moment to consider what the code in **OnBehalfOfAuthProvider.cs** does.
 - In the `GetAccessToken` function, it uses the bearer token sent by the test app to the Azure Function to generate a user assertion. It then uses that user assertion to get a Graph-compatible token using `AcquireTokenOnBehalfOf`.
 
 ### Implement GetMyNewestMessage function
+
+1. Create a new file named **TokenValidation.cs** in the **./GraphTutorial/Authentication** folder, and add the following code.
+
+    :::code language="csharp" source="../demo/GraphTutorial/Authentication/TokenValidation.cs" id="TokenValidationSnippet":::
 
 1. Open **./GraphTutorial/GetMyNewestMessage.cs** and replace its entire contents with the following.
 

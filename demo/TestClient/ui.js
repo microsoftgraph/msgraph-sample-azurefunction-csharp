@@ -174,7 +174,7 @@ function showSubscriptions() {
 
   const subscribeButton = createElement('button', 'btn btn-primary mb-2', 'Subscribe');
   subscribeButton.setAttribute('type', 'button');
-  subscribeButton.setAttribute('onclick', 'createNewSubscription();');
+  subscribeButton.setAttribute('onclick', 'createSubscription();');
   form.appendChild(subscribeButton);
 
   const card = createElement('div', 'card');
@@ -207,10 +207,11 @@ function showSubscriptions() {
       row.appendChild(deleteButtonCell);
 
       const deleteButton = createElement('button', 'btn btn-sm btn-primary', 'Delete');
+      deleteButton.setAttribute('onclick', `deleteSubscription("${subscription.subscriptionId}");`);
       deleteButtonCell.appendChild(deleteButton);
 
-      row.appendChild(createElement('td', '', subscription.user));
-      row.appendChild(createElement('td', '', subscription.id));
+      row.appendChild(createElement('td', '', subscription.userId));
+      row.appendChild(createElement('td', '', subscription.subscriptionId));
     }
   }
 

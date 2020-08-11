@@ -44,7 +44,7 @@ namespace InvokeAzureFunction
 
             var appId = appConfig["appId"];
             var tenantId = appConfig["tenantId"];
-            var scopes = new[] { $"{appConfig["webApiId"]}/.default" };
+            var scopes = new[] { $"{appConfig["apiFunctionId"]}/.default" };
 
             // Initialize the auth provider with values from appsettings.json
             var authProvider = new DeviceCodeAuthProvider(appId, tenantId, scopes);
@@ -210,7 +210,7 @@ namespace InvokeAzureFunction
             // Check for required settings
             if (string.IsNullOrEmpty(appConfig["appId"]) ||
                 string.IsNullOrEmpty(appConfig["tenantId"]) ||
-                string.IsNullOrEmpty(appConfig["webApiId"]))
+                string.IsNullOrEmpty(appConfig["apiFunctionId"]))
             {
                 return null;
             }

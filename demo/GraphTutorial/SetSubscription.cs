@@ -37,10 +37,26 @@ namespace GraphTutorial
             // Check configuration
             if (string.IsNullOrEmpty(_config["webHookId"]) ||
                 string.IsNullOrEmpty(_config["webHookSecret"]) ||
-                string.IsNullOrEmpty(_config["tenantId"]))
+                string.IsNullOrEmpty(_config["tenantId"]) ||
+                string.IsNullOrEmpty(_config["apiFunctionId"]))
             {
                 log.LogError("Invalid app settings configured");
                 return new InternalServerErrorResult();
+            }
+
+            var notificationHost = _config["ngrokUrl"];
+            if (string.IsNullOrEmpty(notificationHost))
+            {
+                notificationHost = req.Host.Value;
+            }
+
+            // Validate the bearer token
+            var bearerToken = await TokenValidation.ValidateAuthorizationHeader(
+                req, _config["tenantId"], _config["apiFunctionId"], log);
+
+            // If token wasn't returned it isn't valid
+            if (string.IsNullOrEmpty(bearerToken)) {
+                return new UnauthorizedResult();
             }
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
@@ -82,8 +98,7 @@ namespace GraphTutorial
 
             if (payload.RequestType.ToLower() == "subscribe")
             {
-                if (string.IsNullOrEmpty(payload.UserId) ||
-                    string.IsNullOrEmpty(payload.NgrokProxy))
+                if (string.IsNullOrEmpty(payload.UserId))
                 {
                     return new BadRequestErrorMessageResult("Required fields in payload missing");
                 }
@@ -92,7 +107,7 @@ namespace GraphTutorial
                 var subscription = new Subscription
                 {
                     ChangeType = "created,updated",
-                    NotificationUrl = $"{payload.NgrokProxy}/api/Notify",
+                    NotificationUrl = $"{notificationHost}/api/Notify",
                     Resource = $"/users/{payload.UserId}/mailfolders/inbox/messages",
                     ExpirationDateTime = DateTimeOffset.UtcNow.AddDays(2),
                     ClientState = Notify.ClientState
