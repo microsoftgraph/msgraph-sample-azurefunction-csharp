@@ -3,6 +3,7 @@
 
 // <GetMyNewestMessageSnippet>
 using GraphTutorial.Authentication;
+using GraphTutorial.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -19,10 +20,12 @@ namespace GraphTutorial
     public class GetMyNewestMessage
     {
         private IConfiguration _config;
+        private IGraphClientService _clientService;
 
-        public GetMyNewestMessage(IConfiguration config)
+        public GetMyNewestMessage(IConfiguration config, IGraphClientService clientService)
         {
             _config = config;
+            _clientService = clientService;
         }
 
         [FunctionName("GetMyNewestMessage")]
@@ -40,33 +43,18 @@ namespace GraphTutorial
             }
 
             // Validate the bearer token
-            var bearerToken = await TokenValidation.ValidateAuthorizationHeader(
+            var validationResult = await TokenValidation.ValidateAuthorizationHeader(
                 req, _config["tenantId"], _config["apiFunctionId"], log);
 
             // If token wasn't returned it isn't valid
-            if (string.IsNullOrEmpty(bearerToken))
+            if (validationResult == null)
             {
                 return new UnauthorizedResult();
             }
 
-            // Initialize the auth provider
-            var authProvider = new OnBehalfOfAuthProvider(
-                _config["apiFunctionId"],
-                _config["apiFunctionSecret"],
-                _config["tenantId"],
-                new[] { "https://graph.microsoft.com/.default" },
-                log);
-
-            // Exchange the token sent by client for a Graph-compatible token
-            var graphToken = await authProvider.GetAccessToken(bearerToken);
-
-            // Initialize a Graph client that uses the token
-            var graphClient = new GraphServiceClient(new DelegateAuthenticationProvider(
-                (requestMessage) => {
-                    requestMessage.Headers.Authorization =
-                        new AuthenticationHeaderValue("bearer", graphToken);
-                    return Task.FromResult(0);
-                }));
+            // Initialize a Graph client for this user
+            var graphClient = _clientService.GetUserGraphClient(validationResult,
+                new[] { "https://graph.microsoft.com/.default" }, log);
 
             // Get the user's newest message in inbox
             // GET /me/mailfolders/inbox/messages

@@ -61,32 +61,93 @@ In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessag
     dotnet user-secrets set tenantId "YOUR_TENANT_ID_HERE"
     ```
 
-1. Create a new file in the **GraphTutorial** directory named **Startup.cs** and add the following code to that file.
+### Process the incoming bearer token
 
-    :::code language="csharp" source="../demo/GraphTutorial/Startup.cs" id="StartupSnippet":::
-
-    This code will enable [dependency injection](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-dependency-injection) in your Azure Functions, exposing the `IConfiguration` object.
-
-### Create an on-behalf-of authentication provider
+In this section you'll implement a class to validate and process the bearer token sent from the SPA to the Azure Function.
 
 1. Create a new directory in the **GraphTutorial** directory named **Authentication**.
+
+1. Create a new file named **TokenValidationResult.cs** in the **./GraphTutorial/Authentication** folder, and add the following code.
+
+    :::code language="csharp" source="../demo/GraphTutorial/Authentication/TokenValidationResult.cs" id="TokenValidationResultSnippet":::
+
+1. Create a new file named **TokenValidation.cs** in the **./GraphTutorial/Authentication** folder, and add the following code.
+
+    :::code language="csharp" source="../demo/GraphTutorial/Authentication/TokenValidation.cs" id="TokenValidationSnippet":::
+
+Consider what this code does.
+
+- It ensure there is a bearer token in the `Authorization` header.
+- It verifies the signature and issuer from Azure's published OpenID configuration.
+- It verifies that the audience (`aud` claim) matches the Azure Function's application ID.
+- It parses the token and generates an MSAL account ID, which will be needed to take advantage of token caching.
+
+### Create an on-behalf-of authentication provider
 
 1. Create a new file in the **Authentication** directory named **OnBehalfOfAuthProvider.cs** and add the following code to that file.
 
     :::code language="csharp" source="../demo/GraphTutorial/Authentication/OnBehalfOfAuthProvider.cs" id="AuthProviderSnippet":::
 
-#### Review the code in OnBehalfOfAuthProvider.cs
-
 Take a moment to consider what the code in **OnBehalfOfAuthProvider.cs** does.
 
-- In the constructor, it initializes a **ConfidentialClientApplication** from the `Microsoft.Identity.Client` package. It uses the `WithAuthority(AadAuthorityAudience.AzureAdMyOrg, true)` and `.WithTenantId(tenantId)` functions to restrict the login audience to only the specified Microsoft 365 organization.
-- In the `GetAccessToken` function, it uses the bearer token sent by the test app to the Azure Function to generate a user assertion. It then uses that user assertion to get a Graph-compatible token using `AcquireTokenOnBehalfOf`.
+- In the `GetAccessToken` function, it first attempts to get a user token from the token cache using `AcquireTokenSilent`. If this fails, it uses the bearer token sent by the test app to the Azure Function to generate a user assertion. It then uses that user assertion to get a Graph-compatible token using `AcquireTokenOnBehalfOf`.
+- It implements the `Microsoft.Graph.IAuthenticationProvider` interface, allowing this class to be passed in the constructor of the `GraphServiceClient` to authenticate outgoing requests.
+
+### Implement a Graph client service
+
+In this section you'll implement a service that can be registered for [dependency injection](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-dependency-injection). The service will be used to get an authenticated Graph client.
+
+1. Create a new directory in the **GraphTutorial** directory named **Services**.
+
+1. Create a new file in the **Services** directory named **IGraphClientService.cs** and add the following code to that file.
+
+    :::code language="csharp" source="../demo/GraphTutorial/Services/IGraphClientService.cs" id="IGraphClientServiceSnippet":::
+
+1. Create a new file in the **Services** directory named **GraphClientService.cs** and add the following code to that file.
+
+    ```csharp
+    using GraphTutorial.Authentication;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Identity.Client;
+    using Microsoft.Graph;
+
+    namespace GraphTutorial.Services
+    {
+        // Service added via dependency injection
+        // Used to get an authenticated Graph client
+        public class GraphClientService : IGraphClientService
+        {
+        }
+    }
+    ```
+
+1. Add the following properties to the `GraphClientService` class.
+
+    :::code language="csharp" source="../demo/GraphTutorial/Services/GraphClientService.cs" id="UserGraphClientMembers":::
+
+1. Add the following functions to the `GraphClientService` class.
+
+    :::code language="csharp" source="../demo/GraphTutorial/Services/GraphClientService.cs" id="UseGraphClientFunctions":::
+
+1. Add a placeholder implementation for the `GetAppGraphClient` function. You will implement that in later sections.
+
+    ```csharp
+    public GraphServiceClient GetAppGraphClient()
+    {
+        throw new System.NotImplementedException();
+    }
+    ```
+
+    The `GetUserGraphClient` function takes the results of token validation and builds an authenticated `GraphServiceClient` for the user.
+
+1. Create a new file in the **GraphTutorial** directory named **Startup.cs** and add the following code to that file.
+
+    :::code language="csharp" source="../demo/GraphTutorial/Startup.cs" id="StartupSnippet":::
+
+    This code will enable [dependency injection](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-dependency-injection) in your Azure Functions, exposing the `IConfiguration` object and the `GraphClientService` service.
 
 ### Implement GetMyNewestMessage function
-
-1. Create a new file named **TokenValidation.cs** in the **./GraphTutorial/Authentication** folder, and add the following code.
-
-    :::code language="csharp" source="../demo/GraphTutorial/Authentication/TokenValidation.cs" id="TokenValidationSnippet":::
 
 1. Open **./GraphTutorial/GetMyNewestMessage.cs** and replace its entire contents with the following.
 
@@ -100,7 +161,7 @@ Take a moment to consider what the code in **GetMyNewestMessage.cs** does.
 - In the `Run` function, it does the following:
   - Validates the required configuration values are present in the `IConfiguration` object.
   - Validates the bearer token and returns a `401` status code if the token is invalid.
-  - Creates the on-behalf-of auth provider and gets an access token for Microsoft Graph.
+  - Gets a Graph client from the `GraphClientService` for the user that made this request.
   - Uses the Microsoft Graph SDK to get the newest message from the user's inbox and returns it as a JSON body in the response.
 
 ## Call the Azure Function from the test app

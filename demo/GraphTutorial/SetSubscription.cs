@@ -51,11 +51,11 @@ namespace GraphTutorial
             }
 
             // Validate the bearer token
-            var bearerToken = await TokenValidation.ValidateAuthorizationHeader(
+            var validationResult = await TokenValidation.ValidateAuthorizationHeader(
                 req, _config["tenantId"], _config["apiFunctionId"], log);
 
             // If token wasn't returned it isn't valid
-            if (string.IsNullOrEmpty(bearerToken)) {
+            if (validationResult == null) {
                 return new UnauthorizedResult();
             }
 
