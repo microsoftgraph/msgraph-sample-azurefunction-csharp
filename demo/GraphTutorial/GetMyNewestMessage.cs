@@ -10,8 +10,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.Http;
 

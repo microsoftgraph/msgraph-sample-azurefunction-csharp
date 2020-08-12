@@ -20,11 +20,13 @@ namespace GraphTutorial.Services
         // requests. Making this a "singleton" here because the sample
         // uses the default in-memory token cache.
         private IConfidentialClientApplication _userMsalClient;
-        // <//UserGraphClientMembers>
+        // </UserGraphClientMembers>
 
+        // <AppGraphClientMembers>
         private GraphServiceClient _appGraphClient;
+        // </AppGraphClientMembers>
 
-        // <UserGraphClientMembers>
+        // <UserGraphClientFunctions>
         public GraphClientService(IConfiguration config)
         {
           _config = config;
@@ -49,11 +51,30 @@ namespace GraphTutorial.Services
             // Return a GraphServiceClient initialized with the auth provider
             return new GraphServiceClient(authProvider);
         }
-        // </UserGraphClientMembers>
+        // </UserGraphClientFunctions>
 
-        public GraphServiceClient GetAppGraphClient()
+        // <AppGraphClientFunctions>
+        public GraphServiceClient GetAppGraphClient(ILogger logger)
         {
-            throw new System.NotImplementedException();
+            if (_appGraphClient == null)
+            {
+                // Create a client credentials auth provider
+                var authProvider = new ClientCredentialsAuthProvider(
+                    _config["webHookId"],
+                    _config["webHookSecret"],
+                    _config["tenantId"],
+                    // The https://graph.microsoft.com/.default scope
+                    // is required for client credentials. It requests
+                    // all of the permissions that are explicitly set on
+                    // the app registration
+                    new[] { "https://graph.microsoft.com/.default" },
+                    logger);
+
+                _appGraphClient = new GraphServiceClient(authProvider);
+            }
+
+            return _appGraphClient;
         }
+        // </AppGraphClientFunctions>
     }
 }

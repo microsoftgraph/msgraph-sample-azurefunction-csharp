@@ -15,7 +15,7 @@ namespace GraphTutorial.Services
           string[] scopes,
           ILogger logger);
 
-        GraphServiceClient GetAppGraphClient();
+        GraphServiceClient GetAppGraphClient(ILogger logger);
     }
 }
 // </IGraphClientServiceSnippet>

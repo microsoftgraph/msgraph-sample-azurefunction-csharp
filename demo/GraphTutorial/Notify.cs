@@ -2,8 +2,8 @@
 // Licensed under the MIT license.
 
 // <NotifySnippet>
-using GraphTutorial.Authentication;
 using GraphTutorial.Models;
+using GraphTutorial.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -12,7 +12,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System.IO;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -23,10 +22,12 @@ namespace GraphTutorial
     {
         public static readonly string ClientState = "GraphTutorialState";
         private IConfiguration _config;
+        private IGraphClientService _clientService;
 
-        public Notify(IConfiguration config)
+        public Notify(IConfiguration config, IGraphClientService clientService)
         {
             _config = config;
+            _clientService = clientService;
         }
 
         [FunctionName("Notify")]
@@ -86,26 +87,7 @@ namespace GraphTutorial
 
         private async Task ProcessNotification(ChangeNotification notification, ILogger log)
         {
-            // Initialize an auth provider
-            var authProvider = new ClientCredentialsAuthProvider(
-                _config["webHookId"],
-                _config["webHookSecret"],
-                _config["tenantId"],
-                // The https://graph.microsoft.com/.default scope
-                // is required for client credentials. It requests
-                // all of the permissions that are explicitly set on
-                // the app registration
-                new[] { "https://graph.microsoft.com/.default" },
-                log);
-
-            var appToken = await authProvider.GetAccessToken();
-
-            var graphClient = new GraphServiceClient(new DelegateAuthenticationProvider(
-                (requestMessage) => {
-                    requestMessage.Headers.Authorization =
-                        new AuthenticationHeaderValue("bearer", appToken);
-                    return Task.FromResult(0);
-                }));
+            var graphClient = _clientService.GetAppGraphClient(log);
 
             // The resource field in the notification has the URL to the
             // message, including the user ID and message ID. Since we
