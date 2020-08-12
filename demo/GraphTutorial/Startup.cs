@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 // <StartupSnippet>
+using GraphTutorial.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,9 @@ namespace GraphTutorial
 
             // Make the loaded config available via dependency injection
             builder.Services.AddSingleton<IConfiguration>(config);
+
+            // Add the Graph client service
+            builder.Services.AddSingleton<IGraphClientService, GraphClientService>();
         }
     }
 }

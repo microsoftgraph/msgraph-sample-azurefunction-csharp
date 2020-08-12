@@ -4,6 +4,7 @@
 // <SetSubscriptionSnippet>
 using GraphTutorial.Authentication;
 using GraphTutorial.Models;
+using GraphTutorial.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -13,7 +14,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
 using System.IO;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -23,10 +23,12 @@ namespace GraphTutorial
     public class SetSubscription
     {
         private IConfiguration _config;
+        private IGraphClientService _clientService;
 
-        public SetSubscription(IConfiguration config)
+        public SetSubscription(IConfiguration config, IGraphClientService clientService)
         {
             _config = config;
+            _clientService = clientService;
         }
 
         [FunctionName("SetSubscription")]
@@ -37,10 +39,26 @@ namespace GraphTutorial
             // Check configuration
             if (string.IsNullOrEmpty(_config["webHookId"]) ||
                 string.IsNullOrEmpty(_config["webHookSecret"]) ||
-                string.IsNullOrEmpty(_config["tenantId"]))
+                string.IsNullOrEmpty(_config["tenantId"]) ||
+                string.IsNullOrEmpty(_config["apiFunctionId"]))
             {
                 log.LogError("Invalid app settings configured");
                 return new InternalServerErrorResult();
+            }
+
+            var notificationHost = _config["ngrokUrl"];
+            if (string.IsNullOrEmpty(notificationHost))
+            {
+                notificationHost = req.Host.Value;
+            }
+
+            // Validate the bearer token
+            var validationResult = await TokenValidation.ValidateAuthorizationHeader(
+                req, _config["tenantId"], _config["apiFunctionId"], log);
+
+            // If token wasn't returned it isn't valid
+            if (validationResult == null) {
+                return new UnauthorizedResult();
             }
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
@@ -58,32 +76,12 @@ namespace GraphTutorial
                 return new BadRequestErrorMessageResult("Invalid request payload");
             }
 
-            // Initialize an auth provider
-            var authProvider = new ClientCredentialsAuthProvider(
-                _config["webHookId"],
-                _config["webHookSecret"],
-                _config["tenantId"],
-                // The https://graph.microsoft.com/.default scope
-                // is required for client credentials. It requests
-                // all of the permissions that are explicitly set on
-                // the app registration
-                new[] { "https://graph.microsoft.com/.default" },
-                log);
-
-            var appToken = await authProvider.GetAccessToken();
-
             // Initialize Graph client
-            var graphClient = new GraphServiceClient(new DelegateAuthenticationProvider(
-                (requestMessage) => {
-                    requestMessage.Headers.Authorization =
-                        new AuthenticationHeaderValue("bearer", appToken);
-                    return Task.FromResult(0);
-                }));
+            var graphClient = _clientService.GetAppGraphClient(log);
 
             if (payload.RequestType.ToLower() == "subscribe")
             {
-                if (string.IsNullOrEmpty(payload.UserId) ||
-                    string.IsNullOrEmpty(payload.NgrokProxy))
+                if (string.IsNullOrEmpty(payload.UserId))
                 {
                     return new BadRequestErrorMessageResult("Required fields in payload missing");
                 }
@@ -92,7 +90,7 @@ namespace GraphTutorial
                 var subscription = new Subscription
                 {
                     ChangeType = "created,updated",
-                    NotificationUrl = $"{payload.NgrokProxy}/api/Notify",
+                    NotificationUrl = $"{notificationHost}/api/Notify",
                     Resource = $"/users/{payload.UserId}/mailfolders/inbox/messages",
                     ExpirationDateTime = DateTimeOffset.UtcNow.AddDays(2),
                     ClientState = Notify.ClientState

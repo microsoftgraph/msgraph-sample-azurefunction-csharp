@@ -2,8 +2,8 @@
 
 In this exercise you will create three new Azure AD applications using the Azure Active Directory admin center:
 
-- An app registration for the command line application so that the application can sign in user's and get tokens allowing the application to call the web APIs exposed by the Azure Function.
-- An app registration for the Azure Function Web API that allows it to use the [on-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow) to exchange the token sent by the command line application for a token that will allow it to call Microsoft Graph.
+- An app registration for the single-page application so that it can sign in users and get tokens allowing the application to call the Azure Function.
+- An app registration for the Azure Function that allows it to use the [on-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow) to exchange the token sent by the SPA for a token that will allow it to call Microsoft Graph.
 - An app registration for the Azure Function webhook that allows it to use the [client credential flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow) to call Microsoft Graph without a user.
 
 > [!NOTE]
@@ -15,13 +15,13 @@ In this exercise you will create three new Azure AD applications using the Azure
 
     ![A screenshot of the App registrations ](./images/aad-portal-app-registrations.png)
 
-## Register an app for the command line application
+## Register an app for the single-page application
 
 1. Select **New registration**. On the **Register an application** page, set the values as follows.
 
     - Set **Name** to `Graph Azure Function Test App`.
     - Set **Supported account types** to **Accounts in this organizational directory only**.
-    - Under **Redirect URI**, change the dropdown to **Public client (mobile & desktop)**, and set the value to `https://login.microsoftonline.com/common/oauth2/nativeclient`.
+    - Under **Redirect URI**, change the dropdown to **Single-page application (SPA)** and set the value to `http://localhost:8080`.
 
     ![A screenshot of the Register an application page](./images/register-command-line-app.png)
 
@@ -29,19 +29,15 @@ In this exercise you will create three new Azure AD applications using the Azure
 
     ![A screenshot of the application ID of the new app registration](./images/aad-application-id.png)
 
-1. Select **Authentication** under **Manage**. Locate the **Advanced settings** section and change the **Treat application as a public client** toggle to **Yes**, then choose **Save**.
-
-    ![A screenshot of the Default client type section](./images/aad-default-client-type.png)
-
-## Register an app for the Azure Function Web API
+## Register an app for the Azure Function
 
 1. Return to **App Registrations**, and select **New registration**. On the **Register an application** page, set the values as follows.
 
-    - Set **Name** to `Graph Azure Function Web API`.
+    - Set **Name** to `Graph Azure Function`.
     - Set **Supported account types** to **Accounts in this organizational directory only**.
     - Leave **Redirect URI** blank.
 
-1. Select **Register**. On the **Graph Azure Function Web API** page, copy the value of the **Application (client) ID** and save it, you will need it in the next step.
+1. Select **Register**. On the **Graph Azure Function** page, copy the value of the **Application (client) ID** and save it, you will need it in the next step.
 
 1. Select **Certificates & secrets** under **Manage**. Select the **New client secret** button. Enter a value in **Description** and select one of the options for **Expires** and select **Add**.
 
@@ -58,7 +54,7 @@ In this exercise you will create three new Azure AD applications using the Azure
 
 1. Select **Microsoft Graph**, then **Delegated Permissions**. Add **Mail.Read** and select **Add permissions**.
 
-    ![A screenshot of the configured permissions for the Web API app registration](./images/web-api-configured-permissions.png)
+    ![A screenshot of the configured permissions for the Azure Function app registration](./images/web-api-configured-permissions.png)
 
 1. Select **Expose an API** under **Manage**, then choose **Add a scope**.
 
@@ -78,20 +74,20 @@ In this exercise you will create three new Azure AD applications using the Azure
 
 1. Copy the new scope, you'll need it in later steps.
 
-    ![A screenshot of the defined scopes for the Web API app registration](./images/web-api-defined-scopes.png)
+    ![A screenshot of the defined scopes for the Azure Function app registration](./images/web-api-defined-scopes.png)
 
 1. Select **Manifest** under **Manage**.
 
 1. Locate `knownClientApplications` in the manifest, and replace it's current value of `[]` with `[TEST_APP_ID]`, where `TEST_APP_ID` is the application ID of the **Graph Azure Function Test App** app registration. Select **Save**.
 
 > [!NOTE]
-> Adding the test application's app ID to the `knownClientApplications` property in the Web API's manifest allows the test application to trigger a [combined consent flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). This is necessary for the on-behalf-of flow to work.
+> Adding the test application's app ID to the `knownClientApplications` property in the Azure Function's manifest allows the test application to trigger a [combined consent flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). This is necessary for the on-behalf-of flow to work.
 
-## Add Web API scope to test application registration
+## Add Azure Function scope to test application registration
 
 1. Return to the **Graph Azure Function Test App** registration, and select **API Permissions** under **Manage**. Select **Add a permission**.
 
-1. Select **My APIs**, then select **Load more**. Select **Graph Azure Function Web API**.
+1. Select **My APIs**, then select **Load more**. Select **Graph Azure Function**.
 
     ![A screenshot of the Request API permissions dialog](./images/test-app-add-permissions.png)
 

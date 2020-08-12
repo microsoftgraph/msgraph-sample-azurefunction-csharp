@@ -2,11 +2,11 @@
 
 In this tutorial, you will create a simple Azure Function that implements HTTP trigger functions that call Microsoft Graph. These functions will cover the following scenarios:
 
-- Implements a web API to access a user's inbox using [on-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow) authentication.
-- Implements a web API to subscribe and unsubscribe for notifications on a user's inbox, using using [client credentials grant flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow) authentication.
+- Implements an API to access a user's inbox using [on-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow) authentication.
+- Implements an API to subscribe and unsubscribe for notifications on a user's inbox, using using [client credentials grant flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow) authentication.
 - Implements a webhook to receive [change notifications](https://docs.microsoft.com/graph/webhooks) from Microsoft Graph and access data using client credentials grant flow.
 
-You will also create a simple command line application to call the web APIs implemented in the Azure Function.
+You will also create a simple JavaScript single-page application (SPA) to call the APIs implemented in the Azure Function.
 
 ## Create Azure Functions project
 
@@ -22,6 +22,14 @@ You will also create a simple command line application to call the web APIs impl
     func new --name GetMyNewestMessage --template "HTTP trigger" --language C#
     func new --name SetSubscription --template "HTTP trigger" --language C#
     func new --name Notify --template "HTTP trigger" --language C#
+    ```
+
+1. Open **local.settings.json** and add the following to the file to allow CORS from `http://localhost:8080`, the URL for the test application.
+
+    ```json
+    "Host": {
+      "CORS": "http://localhost:8080"
+    }
     ```
 
 1. Run the following command to run the project locally.
@@ -44,21 +52,51 @@ You will also create a simple command line application to call the web APIs impl
 
 1. Verify that the functions are working correctly by opening your browser and browsing to the function URLs shown in the output. You should see the following message in your browser: `This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.`.
 
-## Create command line application
+## Create single-page application
 
-1. Open your CLI in a directory where you want to create the project. Run the following command.
+1. Open your CLI in a directory where you want to create the project. Create a directory named **TestClient** to hold your HTML and JavaScript files.
+
+1. Create a new file named **index.html** in the **TestClient** directory and add the following code.
+
+    :::code language="html" source="../demo/TestClient/index.html" id="indexSnippet":::
+
+    This defines the basic layout of the app, including a navigation bar. It also adds the following:
+
+    - [Bootstrap](https://getbootstrap.com/) and its supporting JavaScript
+    - [FontAwesome](https://fontawesome.com/)
+    - [Microsoft Authentication Library for JavaScript (MSAL.js) 2.0](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser)
+
+    > [!TIP]
+    > The page includes a favicon, (`<link rel="shortcut icon" href="g-raph.png">`). You can remove this line, or you can download the **g-raph.png** file from [GitHub](https://github.com/microsoftgraph/g-raph).
+
+1. Create a new file named **style.css** in the **TestClient** directory and add the following code.
+
+    :::code language="css" source="../demo/TestClient/style.css":::
+
+1. Create a new file named **ui.js** in the **TestClient** directory and add the following code.
+
+    :::code language="javascript" source="../demo/TestClient/ui.js" id="uiJsSnippet":::
+
+    This code uses JavaScript to render the current page based on the selected view.
+
+### Test the single-page application
+
+> [!NOTE]
+> This section includes instructions for using [dotnet-serve](https://github.com/natemcmaster/dotnet-serve) to run a simple testing HTTP server on your development machine. Using this specific tool is not required. You can use any testing server you prefer to serve the **TestClient** directory.
+
+1. Run the following command in your CLI to install **dotnet-serve**.
 
     ```Shell
-    dotnet new console -o InvokeAzureFunction
+    dotnet tool install --global dotnet-serve
     ```
 
-1. Once the project is created, verify that it works by changing the current directory to the **InvokeAzureFunction** directory and running the following command in your CLI.
+1. Change the current directory in your CLI to the **TestClient** directory and run the following command to start an HTTP server.
 
     ```Shell
-    dotnet run
+    dotnet serve -h "Cache-Control: no-cache, no-store, must-revalidate"
     ```
 
-    If it works, the app outputs `Hello World!`.
+1. Open your browser and navigate to `http://localhost:8080`. The page should render, but none of the buttons currently work.
 
 ## Add NuGet packages
 
@@ -81,129 +119,3 @@ Before moving on, install some additional NuGet packages that you will use later
     dotnet add package Microsoft.IdentityModel.Protocols.OpenIdConnect --version 6.7.1
     dotnet add package System.IdentityModel.Tokens.Jwt --version 6.7.1
     ```
-
-1. Change the current directory in your CLI to the **InvokeAzureFunction** directory and run the following command.
-
-    ```Shell
-    dotnet add package Microsoft.Extensions.Configuration.UserSecrets --version 3.1.5
-    dotnet add package Microsoft.Identity.Client --version 4.15.0
-    ```
-
-## Design the app
-
-In this section you will create a simple console-based menu.
-
-1. Open **.\InvokeAzureFunction\Program.cs** in a text editor (such as [Visual Studio Code](https://code.visualstudio.com/)) and replace its entire contents with the following code.
-
-    ```csharp
-    using Microsoft.Extensions.Configuration;
-    using System;
-    using System.IO;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Text.Json;
-    using System.Threading.Tasks;
-
-    namespace InvokeAzureFunction
-    {
-        class Program
-        {
-            static async Task Main(string[] args)
-            {
-                Console.WriteLine("Azure Function Graph Tutorial\n");
-
-                // Prompt for ngrok URL
-                string ngrokProxy = "";
-                while (string.IsNullOrEmpty(ngrokProxy))
-                {
-                    Console.Write("Enter https ngrok URL: ");
-                    ngrokProxy = Console.ReadLine();
-
-                    if (!Uri.IsWellFormedUriString(ngrokProxy, UriKind.Absolute))
-                    {
-                        Console.WriteLine("Invalid input, please enter URL in form https://418ead6a47a6.ngrok.io");
-                        ngrokProxy = "";
-                    }
-                }
-
-                int choice = -1;
-
-                while (choice != 0) {
-                    Console.WriteLine("Please choose one of the following options:");
-                    Console.WriteLine("0. Exit");
-                    Console.WriteLine("1. Display the newest message in my inbox");
-                    Console.WriteLine("2. Subscribe to notifications in a user's inbox");
-                    Console.WriteLine("3. Unsubscribe to notifications in a user's inbox");
-
-                    try
-                    {
-                        choice = int.Parse(Console.ReadLine());
-                    }
-                    catch (System.FormatException)
-                    {
-                        // Set to invalid value
-                        choice = -1;
-                    }
-
-                    try
-                    {
-                        switch(choice)
-                        {
-                            case 0:
-                                // Exit the program
-                                Console.WriteLine("Goodbye...");
-                                break;
-                            case 1:
-                                // Get signed-in user's newest email message
-                                await GetNewestMessage(accessToken);
-                                break;
-                            case 2:
-                                // Subscribe
-                                await CreateSubscription(ngrokProxy);
-                                break;
-                            case 3:
-                                // Unsubscribe
-                                await DeleteSubscription(ngrokProxy);
-                                break;
-                            default:
-                                Console.WriteLine("Invalid choice! Please try again.");
-                                break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"\nERROR: {ex.Message}\n");
-                    }
-                }
-            }
-
-            private static async Task GetNewestMessage(string token, string ngrokProxy)
-            {
-            }
-
-            private static async Task CreateSubscription(string ngrokProxy)
-            {
-            }
-
-            private static async Task DeleteSubscription(string ngrokProxy)
-            {
-            }
-
-            // Pretty-print a JSON string using System.Text.Json
-            private static string PrettyPrintJson(string uglyJson)
-            {
-                using var jsonDoc = JsonDocument.Parse(uglyJson);
-
-                var stream = new MemoryStream();
-                using (var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions{ Indented = true }))
-                {
-                    jsonDoc.WriteTo(jsonWriter);
-                }
-
-                return new System.Text.UTF8Encoding().GetString(stream.ToArray());
-            }
-        }
-    }
-    ```
-
-This implements a basic menu and reads the user's choice from the command line.
