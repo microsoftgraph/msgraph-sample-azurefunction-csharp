@@ -111,6 +111,7 @@ In this section, you'll implement functions to create and delete subscriptions i
 
     ```Shell
     dotnet user-secrets set ngrokUrl "YOUR_NGROK_URL_HERE"
+    ```
 
     > [!IMPORTANT]
     > If you restart ngrok, you will need to repeat this command to update your ngrok URL.
