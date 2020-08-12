@@ -18,7 +18,7 @@ Start by adding authentication to the SPA. This will allow the application to ge
 
 1. Create a new file in the **TestClient** directory named **config.js** and add the following code.
 
-    :::code language="javascript" source="../demo/graph-tutorial/config.example.js" id="msalConfigSnippet":::
+    :::code language="javascript" source="../demo/TestClient/config.example.js" id="msalConfigSnippet":::
 
     Replace `YOUR_TEST_APP_APP_ID_HERE` with the application ID you created in the Azure portal for the **Graph Azure Function Test App**. Replace `YOUR_TENANT_ID_HERE` with the **Directory (tenant) ID** value you copied from the Azure portal. Replace `YOUR_AZURE_FUNCTION_APP_ID_HERE` with the application ID for the **Graph Azure Function**.
 
@@ -128,7 +128,7 @@ In this section you'll implement a service that can be registered for [dependenc
 
 1. Add the following functions to the `GraphClientService` class.
 
-    :::code language="csharp" source="../demo/GraphTutorial/Services/GraphClientService.cs" id="UseGraphClientFunctions":::
+    :::code language="csharp" source="../demo/GraphTutorial/Services/GraphClientService.cs" id="UserGraphClientFunctions":::
 
 1. Add a placeholder implementation for the `GetAppGraphClient` function. You will implement that in later sections.
 
