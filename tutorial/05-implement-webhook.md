@@ -40,7 +40,7 @@ Take a moment to consider what the code in **ClientCredentialsAuthProvider.cs** 
 
 1. Replace the existing `GetAppGraphClient` function with the following.
 
-    :::code language="csharp" source="../demo/GraphTutorial/Services/GraphClientService.cs" id="AppGraphClientMembers":::
+    :::code language="csharp" source="../demo/GraphTutorial/Services/GraphClientService.cs" id="AppGraphClientFunctions":::
 
 ## Implement Notify function
 
