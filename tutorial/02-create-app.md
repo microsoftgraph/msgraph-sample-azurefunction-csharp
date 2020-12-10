@@ -93,7 +93,7 @@ You will also create a simple JavaScript single-page application (SPA) to call t
 1. Change the current directory in your CLI to the **TestClient** directory and run the following command to start an HTTP server.
 
     ```Shell
-    dotnet serve -h "Cache-Control: no-cache, no-store, must-revalidate"
+    dotnet serve -h "Cache-Control: no-cache, no-store, must-revalidate" -p 8080
     ```
 
 1. Open your browser and navigate to `http://localhost:8080`. The page should render, but none of the buttons currently work.
