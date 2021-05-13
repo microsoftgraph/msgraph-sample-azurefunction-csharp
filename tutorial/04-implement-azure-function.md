@@ -40,9 +40,6 @@ Start by adding authentication to the SPA. This will allow the application to ge
 
 1. Refresh the page and sign in. The page should update with the user name, indicating that the sign in was successful.
 
-> [!TIP]
-> You can parse the access token at [https://jwt.ms](https://jwt.ms) and confirm that the `aud` claim is the app ID for the Azure Function, and that the `scp` claim contains the Azure Function's permission scope, not Microsoft Graph.
-
 ## Add authentication to the Azure Function
 
 In this section you'll implement the on-behalf-of flow in the `GetMyNewestMessage` Azure Function to get an access token compatible with Microsoft Graph.
@@ -141,11 +138,11 @@ In this section you'll implement a service that can be registered for [dependenc
 
     The `GetUserGraphClient` function takes the results of token validation and builds an authenticated `GraphServiceClient` for the user.
 
-1. Create a new file in the **GraphTutorial** directory named **Startup.cs** and add the following code to that file.
+1. Open **./GraphTutorial/Program.cs** and replace its contents with the following.
 
-    :::code language="csharp" source="../demo/GraphTutorial/Startup.cs" id="StartupSnippet":::
+    :::code language="csharp" source="../demo/GraphTutorial/Program.cs" id="ProgramSnippet" highlight="15-23":::
 
-    This code will enable [dependency injection](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-dependency-injection) in your Azure Functions, exposing the `IConfiguration` object and the `GraphClientService` service.
+    This code will add user secrets to the configuration, and enable [dependency injection](https://docs.microsoft.com/azure/azure-functions/functions-dotnet-dependency-injection) in your Azure Functions, exposing the `GraphClientService` service.
 
 ### Implement GetMyNewestMessage function
 
@@ -157,7 +154,7 @@ In this section you'll implement a service that can be registered for [dependenc
 
 Take a moment to consider what the code in **GetMyNewestMessage.cs** does.
 
-- In the constructor, it saves the `IConfiguration` object passed in via dependency injection.
+- In the constructor, it saves the `IConfiguration` and `IGraphClientService` objects passed in via dependency injection.
 - In the `Run` function, it does the following:
   - Validates the required configuration values are present in the `IConfiguration` object.
   - Validates the bearer token and returns a `401` status code if the token is invalid.
@@ -174,6 +171,9 @@ Take a moment to consider what the code in **GetMyNewestMessage.cs** does.
 
     - It first attempts to get an access token silently, without user interaction. Since the user should already be signed in, MSAL should have tokens for the user in its cache.
     - If that fails with an error that indicates the user needs to interact, it attempts to get a token interactively.
+
+    > [!TIP]
+    > You can parse the access token at [https://jwt.ms](https://jwt.ms) and confirm that the `aud` claim is the app ID for the Azure Function, and that the `scp` claim contains the Azure Function's permission scope, not Microsoft Graph.
 
 1. Create a new file in the **TestClient** directory named **azurefunctions.js** and add the following code.
 

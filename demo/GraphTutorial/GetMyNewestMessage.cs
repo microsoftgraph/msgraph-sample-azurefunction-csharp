@@ -2,16 +2,15 @@
 // Licensed under the MIT license.
 
 // <GetMyNewestMessageSnippet>
+using System.Net;
+using System.Threading.Tasks;
 using GraphTutorial.Authentication;
 using GraphTutorial.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using System.Web.Http;
+using Microsoft.Graph;
 
 namespace GraphTutorial
 {
@@ -26,33 +25,35 @@ namespace GraphTutorial
             _clientService = clientService;
         }
 
-        [FunctionName("GetMyNewestMessage")]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            ILogger log)
+        [Function("GetMyNewestMessage")]
+        public async Task<HttpResponseData> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req,
+            FunctionContext executionContext)
         {
+            var logger = executionContext.GetLogger("GetMyNewestMessage");
+
             // Check configuration
             if (string.IsNullOrEmpty(_config["apiFunctionId"]) ||
                 string.IsNullOrEmpty(_config["apiFunctionSecret"]) ||
                 string.IsNullOrEmpty(_config["tenantId"]))
             {
-                log.LogError("Invalid app settings configured");
-                return new InternalServerErrorResult();
+                logger.LogError("Invalid app settings configured");
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
             }
 
             // Validate the bearer token
             var validationResult = await TokenValidation.ValidateAuthorizationHeader(
-                req, _config["tenantId"], _config["apiFunctionId"], log);
+                req, _config["tenantId"], _config["apiFunctionId"], logger);
 
             // If token wasn't returned it isn't valid
             if (validationResult == null)
             {
-                return new UnauthorizedResult();
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
             }
 
             // Initialize a Graph client for this user
             var graphClient = _clientService.GetUserGraphClient(validationResult,
-                new[] { "https://graph.microsoft.com/.default" }, log);
+                new[] { "https://graph.microsoft.com/.default" }, logger);
 
             // Get the user's newest message in inbox
             // GET /me/mailfolders/inbox/messages
@@ -74,13 +75,15 @@ namespace GraphTutorial
                 .Top(1)
                 .GetAsync();
 
-            if (messagePage.CurrentPage.Count < 1)
+            if (messagePage.CurrentPage.Count > 0)
             {
-                return new OkObjectResult(null);
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                // Return the message in the response
+                await response.WriteAsJsonAsync<Message>(messagePage.CurrentPage[0]);
+                return response;
             }
 
-            // Return the message in the response
-            return new OkObjectResult(messagePage.CurrentPage[0]);
+            return req.CreateResponse(HttpStatusCode.NoContent);
         }
     }
 }

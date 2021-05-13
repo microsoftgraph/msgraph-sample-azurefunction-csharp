@@ -19,10 +19,10 @@ You should also have a Microsoft work or school account, with access to a global
 > [!NOTE]
 > This tutorial was written with the following versions of the above tools. The steps in this guide may work with other versions, but that has not been tested.
 >
-> - .NET Core SDK 3.1.301
-> - Azure Functions Core Tools 3.0.2630
-> - Azure CLI 2.8.0
-> - ngrok 2.3.35
+> - .NET Core SDK 5.0.203
+> - Azure Functions Core Tools 3.0.3442
+> - Azure CLI 2.23.0
+> - ngrok 2.3.40
 
 ## Feedback
 

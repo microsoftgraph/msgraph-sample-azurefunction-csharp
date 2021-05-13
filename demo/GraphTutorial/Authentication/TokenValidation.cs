@@ -2,15 +2,16 @@
 // Licensed under the MIT license.
 
 // <TokenValidationSnippet>
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Security.Claims;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace GraphTutorial.Authentication
@@ -19,15 +20,15 @@ namespace GraphTutorial.Authentication
     {
         private static TokenValidationParameters _validationParameters = null;
         public static async Task<TokenValidationResult> ValidateAuthorizationHeader(
-            HttpRequest request,
+            Microsoft.Azure.Functions.Worker.Http.HttpRequestData request,
             string tenantId,
             string expectedAudience,
             ILogger log)
         {
             // Check for Authorization header
-            if (request.Headers.ContainsKey("authorization"))
+            if (request.Headers.TryGetValues("authorization", out IEnumerable<string> authValues))
             {
-                var authHeader = AuthenticationHeaderValue.Parse(request.Headers["authorization"]);
+                var authHeader = AuthenticationHeaderValue.Parse(authValues.ToArray().First());
 
                 if (authHeader != null &&
                     authHeader.Scheme.ToLower() == "bearer" &&

@@ -4,7 +4,7 @@ In this exercise you'll learn about what changes are needed to the sample Azure 
 
 ## Update code
 
-Configuration is read from the user secret store, which only applies to your development machine. Before you publish to Azure, you'll need to change where you store your configuration, and update the code in **Startup.cs** accordingly.
+Configuration is read from the user secret store, which only applies to your development machine. Before you publish to Azure, you'll need to change where you store your configuration, and update the code in **Program.cs** accordingly.
 
 Application secrets should be stored in secure storage, such as [Azure Key Vault](https://docs.microsoft.com/azure/key-vault/general/overview).
 
@@ -14,7 +14,7 @@ In this sample we configured CORS in **local.settings.json** to allow the test a
 
 ## Update app registrations
 
-The  `knownClientApplications` property in the manifest for the **Graph Azure Function** app registration will need to be updated with the application IDs of any apps that will be calling the Azure Function.
+The `knownClientApplications` property in the manifest for the **Graph Azure Function** app registration will need to be updated with the application IDs of any apps that will be calling the Azure Function.
 
 ## Recreate existing subscriptions
 

@@ -8,7 +8,7 @@ namespace GraphTutorial.Models
 {
     // Represents a change notification payload
     // https://docs.microsoft.com/graph/api/resources/changenotification?view=graph-rest-1.0
-    public class ChangeNotification
+    public class ChangeNotificationPayload
     {
         public string ChangeType { get;set; }
         public string ClientState { get;set; }

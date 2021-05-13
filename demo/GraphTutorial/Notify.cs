@@ -1,20 +1,15 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-
-// <NotifySnippet>
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Text.Json;
+using System.Threading.Tasks;
 using GraphTutorial.Models;
 using GraphTutorial.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Web.Http;
 
 namespace GraphTutorial
 {
@@ -30,41 +25,46 @@ namespace GraphTutorial
             _clientService = clientService;
         }
 
-        [FunctionName("Notify")]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            ILogger log)
+        [Function("Notify")]
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            FunctionContext executionContext)
         {
+            var logger = executionContext.GetLogger("Notify");
+
             // Check configuration
             if (string.IsNullOrEmpty(_config["webHookId"]) ||
                 string.IsNullOrEmpty(_config["webHookSecret"]) ||
                 string.IsNullOrEmpty(_config["tenantId"]))
             {
-                log.LogError("Invalid app settings configured");
-                return new InternalServerErrorResult();
+                logger.LogError("Invalid app settings configured");
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
             }
 
             // Is this a validation request?
             // https://docs.microsoft.com/graph/webhooks#notification-endpoint-validation
-            string validationToken = req.Query["validationToken"];
-            if (!string.IsNullOrEmpty(validationToken))
+            if (executionContext.BindingContext.BindingData
+                .TryGetValue("validationToken", out object validationToken))
             {
                 // Because validationToken is a string, OkObjectResult
                 // will return a text/plain response body, which is
                 // required for validation
-                return new OkObjectResult(validationToken);
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+
+                response.WriteString(validationToken.ToString());
+                return response;
             }
 
             // Not a validation request, process the body
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            log.LogInformation($"Change notification payload: {requestBody}");
+            logger.LogInformation($"Change notification payload: {requestBody}");
 
             var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
 
-            // Deserialize the JSON payload into a list of ChangeNotification
+            // Deserialize the JSON payload into a list of ChangeNotificationPayload
             // objects
             var notifications = JsonSerializer.Deserialize<NotificationList>(requestBody, jsonOptions);
 
@@ -73,19 +73,19 @@ namespace GraphTutorial
                 if (notification.ClientState == ClientState)
                 {
                     // Process each notification
-                    await ProcessNotification(notification, log);
+                    await ProcessNotification(notification, logger);
                 }
                 else
                 {
-                    log.LogInformation($"Notification received with unexpected client state: {notification.ClientState}");
+                    logger.LogInformation($"Notification received with unexpected client state: {notification.ClientState}");
                 }
             }
 
             // Return 202 per docs
-            return new AcceptedResult();
+            return req.CreateResponse(HttpStatusCode.Accepted);
         }
 
-        private async Task ProcessNotification(ChangeNotification notification, ILogger log)
+        private async Task ProcessNotification(ChangeNotificationPayload notification, ILogger log)
         {
             var graphClient = _clientService.GetAppGraphClient(log);
 
@@ -109,4 +109,3 @@ namespace GraphTutorial
         }
     }
 }
-// </NotifySnippet>

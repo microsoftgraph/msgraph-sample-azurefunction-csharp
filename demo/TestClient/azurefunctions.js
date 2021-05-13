@@ -18,9 +18,16 @@ async function getLatestMessage() {
       }
     });
 
-    const message = await response.json();
-
-    updatePage(Views.message, message);
+    if (response.status === 200) {
+      const message = await response.json();
+      updatePage(Views.message, message);
+    } else if (response.status === 204) {
+      updatePage(Views.message, null);
+    } else {
+      updatePage(Views.error, {
+        message: `Error getting message: ${response.status} ${response.statusText}`
+      });
+    }
   } catch (error) {
     updatePage(Views.error, {
       message: 'Error getting message',
