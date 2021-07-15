@@ -1,22 +1,16 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-
-// <SetSubscriptionSnippet>
+using System;
+using System.IO;
+using System.Net;
+using System.Text.Json;
+using System.Threading.Tasks;
 using GraphTutorial.Authentication;
 using GraphTutorial.Models;
 using GraphTutorial.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using System;
-using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Web.Http;
 
 namespace GraphTutorial
 {
@@ -31,34 +25,36 @@ namespace GraphTutorial
             _clientService = clientService;
         }
 
-        [FunctionName("SetSubscription")]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            ILogger log)
+
+        [Function("SetSubscription")]
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            FunctionContext executionContext)
         {
+            var logger = executionContext.GetLogger("SetSubscription");
+
             // Check configuration
             if (string.IsNullOrEmpty(_config["webHookId"]) ||
                 string.IsNullOrEmpty(_config["webHookSecret"]) ||
                 string.IsNullOrEmpty(_config["tenantId"]) ||
                 string.IsNullOrEmpty(_config["apiFunctionId"]))
             {
-                log.LogError("Invalid app settings configured");
-                return new InternalServerErrorResult();
+                logger.LogError("Invalid app settings configured");
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
             }
 
             var notificationHost = _config["ngrokUrl"];
             if (string.IsNullOrEmpty(notificationHost))
             {
-                notificationHost = req.Host.Value;
+                notificationHost = req.Url.Host;
             }
 
             // Validate the bearer token
             var validationResult = await TokenValidation.ValidateAuthorizationHeader(
-                req, _config["tenantId"], _config["apiFunctionId"], log);
+                req, _config["tenantId"], _config["apiFunctionId"], logger);
 
             // If token wasn't returned it isn't valid
             if (validationResult == null) {
-                return new UnauthorizedResult();
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
             }
 
             var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
@@ -73,17 +69,21 @@ namespace GraphTutorial
 
             if (payload == null)
             {
-                return new BadRequestErrorMessageResult("Invalid request payload");
+                var response = req.CreateResponse(HttpStatusCode.BadRequest);
+                response.WriteString("Invalid request payload");
+                return response;
             }
 
             // Initialize Graph client
-            var graphClient = _clientService.GetAppGraphClient(log);
+            var graphClient = _clientService.GetAppGraphClient(logger);
 
             if (payload.RequestType.ToLower() == "subscribe")
             {
                 if (string.IsNullOrEmpty(payload.UserId))
                 {
-                    return new BadRequestErrorMessageResult("Required fields in payload missing");
+                    var response = req.CreateResponse(HttpStatusCode.BadRequest);
+                    response.WriteString("Required fields in payload missing");
+                    return response;
                 }
 
                 // Create a new subscription object
@@ -101,13 +101,17 @@ namespace GraphTutorial
                     .Request()
                     .AddAsync(subscription);
 
-                return new OkObjectResult(createdSubscription);
+                var okResponse = req.CreateResponse(HttpStatusCode.OK);
+                await okResponse.WriteAsJsonAsync<Subscription>(createdSubscription);
+                return okResponse;
             }
             else
             {
                 if (string.IsNullOrEmpty(payload.SubscriptionId))
                 {
-                    return new BadRequestErrorMessageResult("Subscription ID missing in payload");
+                    var response = req.CreateResponse(HttpStatusCode.BadRequest);
+                    response.WriteString("Subscription ID missing in payload");
+                    return response;
                 }
 
                 // DELETE /subscriptions/subscriptionId
@@ -115,9 +119,8 @@ namespace GraphTutorial
                     .Request()
                     .DeleteAsync();
 
-                return new AcceptedResult();
+                return req.CreateResponse(HttpStatusCode.Accepted);
             }
         }
     }
 }
-// </SetSubscriptionSnippet>

@@ -52,9 +52,9 @@ In this section you'll implement the `Notify` function, which will be used as th
 
     :::code language="csharp" source="../demo/GraphTutorial/Models/ResourceData.cs" id="ResourceDataSnippet":::
 
-1. Create a new file in the **Models** directory named **ChangeNotification.cs** and add the following code.
+1. Create a new file in the **Models** directory named **ChangeNotificationPayload.cs** and add the following code.
 
-    :::code language="csharp" source="../demo/GraphTutorial/Models/ChangeNotification.cs" id="ChangeNotificationSnippet":::
+    :::code language="csharp" source="../demo/GraphTutorial/Models/ChangeNotificationPayload.cs" id="ChangeNotificationSnippet":::
 
 1. Create a new file in the **Models** directory named **NotificationList.cs** and add the following code.
 
@@ -67,7 +67,7 @@ In this section you'll implement the `Notify` function, which will be used as th
 Take a moment to consider what the code in **Notify.cs** does.
 
 - The `Run` function checks for the presence of a `validationToken` query parameter. If that parameter is present, it processes the request as a [validation request](https://docs.microsoft.com/graph/webhooks#notification-endpoint-validation), and responds accordingly.
-- If the request is not a validation request, the JSON payload is deserialized into a `NotificationList`.
+- If the request is not a validation request, the JSON payload is deserialized into a `ChangeNotificationCollection`.
 - Each notification in the list is checked for the expected client state value, and is processed.
 - The message that triggered the notification is retrieved with Microsoft Graph.
 
@@ -103,7 +103,7 @@ In this section, you'll implement functions to create and delete subscriptions i
 
     :::code language="javascript" source="../demo/TestClient/azurefunctions.js" id="deleteSubscriptionSnippet":::
 
-    This code calls the `SetSubscription` Azure Function to un and removes the subscription from the array of subscriptions in the session.
+    This code calls the `SetSubscription` Azure Function to unsubscribe and removes the subscription from the array of subscriptions in the session.
 
 1. If you do not have ngrok running, run ngrok (`ngrok http 7071`) and copy the HTTPS forwarding URL.
 

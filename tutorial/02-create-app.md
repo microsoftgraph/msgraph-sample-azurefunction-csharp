@@ -13,15 +13,15 @@ You will also create a simple JavaScript single-page application (SPA) to call t
 1. Open your command-line interface (CLI) in a directory where you want to create the project. Run the following command.
 
     ```Shell
-    func init GraphTutorial --dotnet
+    func init GraphTutorial --worker-runtime dotnetisolated
     ```
 
 1. Change the current directory in your CLI to the **GraphTutorial** directory and run the following commands to create three functions in the project.
 
     ```Shell
-    func new --name GetMyNewestMessage --template "HTTP trigger" --language C#
-    func new --name SetSubscription --template "HTTP trigger" --language C#
-    func new --name Notify --template "HTTP trigger" --language C#
+    func new --name GetMyNewestMessage --template "HTTP trigger"
+    func new --name SetSubscription --template "HTTP trigger"
+    func new --name Notify --template "HTTP trigger"
     ```
 
 1. Open **local.settings.json** and add the following to the file to allow CORS from `http://localhost:8080`, the URL for the test application.
@@ -41,7 +41,7 @@ You will also create a simple JavaScript single-page application (SPA) to call t
 1. If everything is working, you will see the following output:
 
     ```Shell
-    Http Functions:
+    Functions:
 
         GetMyNewestMessage: [GET,POST] http://localhost:7071/api/GetMyNewestMessage
 
@@ -50,7 +50,7 @@ You will also create a simple JavaScript single-page application (SPA) to call t
         SetSubscription: [GET,POST] http://localhost:7071/api/SetSubscription
     ```
 
-1. Verify that the functions are working correctly by opening your browser and browsing to the function URLs shown in the output. You should see the following message in your browser: `This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.`.
+1. Verify that the functions are working correctly by opening your browser and browsing to the function URLs shown in the output. You should see the following message in your browser: `Welcome to Azure Functions!`.
 
 ## Create single-page application
 
@@ -112,10 +112,10 @@ Before moving on, install some additional NuGet packages that you will use later
 1. Change the current directory in your CLI to the **GraphTutorial** directory and run the following commands.
 
     ```Shell
-    dotnet add package Microsoft.Azure.Functions.Extensions --version 1.0.0
-    dotnet add package Microsoft.Extensions.Configuration.UserSecrets --version 3.1.5
-    dotnet add package Microsoft.Graph --version 3.8.0
-    dotnet add package Microsoft.Identity.Client --version 4.15.0
-    dotnet add package Microsoft.IdentityModel.Protocols.OpenIdConnect --version 6.7.1
-    dotnet add package System.IdentityModel.Tokens.Jwt --version 6.7.1
+    dotnet add package Microsoft.Azure.Functions.Extensions --version 1.1.0
+    dotnet add package Microsoft.Extensions.Configuration.UserSecrets --version 5.0.0
+    dotnet add package Microsoft.Graph --version 4.0.0
+    dotnet add package Microsoft.Identity.Client --version 4.34.0
+    dotnet add package Microsoft.IdentityModel.Protocols.OpenIdConnect --version 6.11.1
+    dotnet add package System.IdentityModel.Tokens.Jwt --version 6.11.1
     ```

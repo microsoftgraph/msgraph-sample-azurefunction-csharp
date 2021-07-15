@@ -62,7 +62,7 @@ function showAccountNav(user) {
     accountNav.className = 'nav-item dropdown';
 
     const dropdown = createElement('a', 'nav-link dropdown-toggle');
-    dropdown.setAttribute('data-toggle', 'dropdown');
+    dropdown.setAttribute('data-bs-toggle', 'dropdown');
     dropdown.setAttribute('role', 'button');
     accountNav.appendChild(dropdown);
 
@@ -71,8 +71,8 @@ function showAccountNav(user) {
     userIcon.style.width = '32px';
     dropdown.appendChild(userIcon);
 
-    const menu = createElement('div', 'dropdown-menu dropdown-menu-right');
-    dropdown.appendChild(menu);
+    const menu = createElement('div', 'dropdown-menu dropdown-menu-end');
+    accountNav.appendChild(menu);
 
     const userName = createElement('h5', 'dropdown-item-text mb-0', user);
     menu.appendChild(userName);
@@ -96,29 +96,32 @@ function showAccountNav(user) {
 // Renders the home view
 function showWelcomeMessage(user) {
   // Create jumbotron
-  const jumbotron = createElement('div', 'jumbotron');
+  const jumbotron = createElement('div', 'p-5 mb-4 bg-light rounded-5')
+
+  const jumbotronContainer = createElement('div', 'container-fluid py-5');
+  jumbotron.appendChild(jumbotronContainer);
 
   const heading = createElement('h1', null, 'Azure Functions Graph Tutorial Test Client');
-  jumbotron.appendChild(heading);
+  jumbotronContainer.appendChild(heading);
 
   const lead = createElement('p', 'lead',
     'This sample app is used to test the Azure Functions in the Azure Functions Graph Tutorial');
-  jumbotron.appendChild(lead);
+    jumbotronContainer.appendChild(lead);
 
   if (user) {
     // Welcome the user by name
     const welcomeMessage = createElement('h4', null, `Welcome ${user}!`);
-    jumbotron.appendChild(welcomeMessage);
+    jumbotronContainer.appendChild(welcomeMessage);
 
     const callToAction = createElement('p', null,
       'Use the navigation bar at the top of the page to get started.');
-    jumbotron.appendChild(callToAction);
+      jumbotronContainer.appendChild(callToAction);
   } else {
     // Show a sign in button in the jumbotron
     const signInButton = createElement('button', 'btn btn-primary btn-large',
       'Click here to sign in');
     signInButton.setAttribute('onclick', 'signIn();')
-    jumbotron.appendChild(signInButton);
+    jumbotronContainer.appendChild(signInButton);
   }
 
   mainContainer.innerHTML = '';
@@ -127,6 +130,14 @@ function showWelcomeMessage(user) {
 
 // Renders an email message
 function showLatestMessage(message) {
+  if (!message) {
+    const noMessage = createElement('h1', 'mt-3', 'No messages in your inbox');
+
+    mainContainer.innerHTML = '';
+    mainContainer.appendChild(noMessage);
+    return;
+  }
+
   // Show message
   const messageCard = createElement('div', 'card');
 
@@ -139,7 +150,7 @@ function showLatestMessage(message) {
   const fromLine = createElement('div', 'd-flex');
   cardBody.appendChild(fromLine);
 
-  const fromLabel = createElement('div', 'mr-3');
+  const fromLabel = createElement('div', 'me-3');
   fromLabel.appendChild(createElement('strong', '', 'From:'));
   fromLine.appendChild(fromLabel);
 
@@ -148,7 +159,7 @@ function showLatestMessage(message) {
   const receivedLine = createElement('div', 'd-flex');
   cardBody.appendChild(receivedLine);
 
-  const receivedLabel = createElement('div', 'mr-3');
+  const receivedLabel = createElement('div', 'me-3');
   receivedLabel.appendChild(createElement('strong', '', 'Received:'));
   receivedLine.appendChild(receivedLabel);
 
@@ -166,7 +177,7 @@ function showSubscriptions() {
   // Show new subscription form
   const form = createElement('form', 'form-inline mb-3');
 
-  const userInput = createElement('input', 'form-control mb-2 mr-2 flex-grow-1');
+  const userInput = createElement('input', 'form-control mb-2 me-2 flex-grow-1');
   userInput.setAttribute('id', 'subscribe-user');
   userInput.setAttribute('type', 'text');
   userInput.setAttribute('placeholder', 'User to subscribe to (user ID or UPN)');
@@ -203,10 +214,10 @@ function showSubscriptions() {
       const row = createElement('tr', '');
       subscriptionTable.appendChild(row);
 
-      const deleteButtonCell = createElement('td', '');
+      const deleteButtonCell = createElement('td', 'py-2');
       row.appendChild(deleteButtonCell);
 
-      const deleteButton = createElement('button', 'btn btn-sm btn-primary', 'Delete');
+      const deleteButton = createElement('button', 'btn btn-sm btn-outline-primary', 'Delete');
       deleteButton.setAttribute('onclick', `deleteSubscription("${subscription.subscriptionId}");`);
       deleteButtonCell.appendChild(deleteButton);
 
