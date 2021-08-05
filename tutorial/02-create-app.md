@@ -115,7 +115,7 @@ Before moving on, install some additional NuGet packages that you will use later
     dotnet add package Microsoft.Azure.Functions.Extensions --version 1.1.0
     dotnet add package Microsoft.Extensions.Configuration.UserSecrets --version 5.0.0
     dotnet add package Microsoft.Graph --version 4.0.0
-    dotnet add package Microsoft.Identity.Client --version 4.34.0
-    dotnet add package Microsoft.IdentityModel.Protocols.OpenIdConnect --version 6.11.1
-    dotnet add package System.IdentityModel.Tokens.Jwt --version 6.11.1
+    dotnet add package Microsoft.Identity.Client --version 4.35.1
+    dotnet add package Microsoft.IdentityModel.Protocols.OpenIdConnect --version 6.12.0
+    dotnet add package System.IdentityModel.Tokens.Jwt --version 6.12.0
     ```
