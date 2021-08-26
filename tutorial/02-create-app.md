@@ -1,3 +1,7 @@
+---
+ms.localizationpriority: medium
+---
+
 <!-- markdownlint-disable MD002 MD041 -->
 
 In this tutorial, you will create a simple Azure Function that implements HTTP trigger functions that call Microsoft Graph. These functions will cover the following scenarios:

@@ -1,3 +1,7 @@
+---
+ms.localizationpriority: medium
+---
+
 <!-- markdownlint-disable MD002 MD041 -->
 
 In this exercise you will finish implementing the Azure Function `GetMyNewestMessage` and update the test client to call the function.

@@ -1,3 +1,7 @@
+---
+ms.localizationpriority: medium
+---
+
 <!-- markdownlint-disable MD002 MD041 -->
 
 In this exercise you will finish implementing the Azure Functions `SetSubscription` and `Notify`, and update the test application to subscribe and unsubscribe to changes in a user's inbox.
