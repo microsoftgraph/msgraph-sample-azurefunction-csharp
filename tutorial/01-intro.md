@@ -18,7 +18,7 @@ Before you start this tutorial, you should have the following tools installed on
 - [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
 - [ngrok](https://ngrok.com/)
 
-You should also have a Microsoft work or school account, with access to a global administrator account in the same organization. If you don't have a Microsoft account, you can [sign up for the Office 365 Developer Program](https://developer.microsoft.com/office/dev-program) to get a free Office 365 subscription.
+You should also have a Microsoft work or school account, with access to a global administrator account in the same organization. If you don't have a Microsoft account, you can [sign up for the Microsoft 365 Developer Program](https://developer.microsoft.com/microsoft-365/dev-program) to get a free Office 365 subscription.
 
 > [!NOTE]
 > This tutorial was written with the following versions of the above tools. The steps in this guide may work with other versions, but that has not been tested.
