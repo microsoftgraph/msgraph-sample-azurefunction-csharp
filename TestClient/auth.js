@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-// <signInSignOutSnippet>
 // Create the main MSAL instance
 // configuration parameters are located in config.js
 const msalClient = new msal.PublicClientApplication(msalConfig);
@@ -29,9 +28,7 @@ function signOut() {
   sessionStorage.removeItem('msal-userName');
   msalClient.logout();
 }
-// </signInSignOutSnippet>
 
-// <getTokenSnippet>
 async function getToken() {
   let account = sessionStorage.getItem('msal-userName');
   if (!account){
@@ -59,4 +56,3 @@ async function getToken() {
     }
   }
 }
-// </getTokenSnippet>

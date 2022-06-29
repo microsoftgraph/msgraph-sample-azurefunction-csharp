@@ -82,7 +82,7 @@ In this exercise you will create three new Azure AD applications using the Azure
 
 1. Select **Manifest** under **Manage**.
 
-1. Locate `knownClientApplications` in the manifest, and replace it's current value of `[]` with `[TEST_APP_ID]`, where `TEST_APP_ID` is the application ID of the **Graph Azure Function Test App** app registration. Select **Save**.
+1. Locate `knownClientApplications` in the manifest, and replace it's current value of `[]` with `["TEST_APP_ID"]`, where `TEST_APP_ID` is the application ID of the **Graph Azure Function Test App** app registration. Select **Save**.
 
 > [!NOTE]
 > Adding the test application's app ID to the `knownClientApplications` property in the Azure Function's manifest allows the test application to trigger a [combined consent flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). This is necessary for the on-behalf-of flow to work.
