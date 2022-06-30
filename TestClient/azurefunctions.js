@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-// <getLatestMessageSnippet>
 async function getLatestMessage() {
   const token = await getToken();
   if (!token) {
@@ -35,9 +34,7 @@ async function getLatestMessage() {
     });
   }
 }
-// </getLatestMessageSnippet>
 
-// <createSubscriptionSnippet>
 async function createSubscription()
 {
   // Get the user to subscribe for
@@ -99,9 +96,7 @@ async function createSubscription()
     debug: response.statusText
   });
 }
-// </createSubscriptionSnippet>
 
-// <deleteSubscriptionSnippet>
 async function deleteSubscription(subscriptionId) {
   const token = await getToken();
   if (!token) {
@@ -149,4 +144,3 @@ async function deleteSubscription(subscriptionId) {
     debug: response.statusText
   });
 }
-// </deleteSubscriptionSnippet>

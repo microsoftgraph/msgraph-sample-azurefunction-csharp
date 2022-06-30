@@ -7,7 +7,7 @@
       "label": "clean",
       "command": "dotnet",
       "options": {
-        "cwd": "${workspaceFolder}/demo/GraphTutorial"
+        "cwd": "${workspaceFolder}/GraphSampleFunctions"
       },
       "args": [
         "clean",
@@ -21,7 +21,7 @@
       "label": "build",
       "command": "dotnet",
       "options": {
-        "cwd": "${workspaceFolder}/demo/GraphTutorial"
+        "cwd": "${workspaceFolder}/GraphSampleFunctions"
       },
       "args": [
         "build",
@@ -37,14 +37,80 @@
       "problemMatcher": "$msCompile"
     },
     {
-      "type": "func",
-      "dependsOn": "build",
+      "label": "clean (functions)",
+      "command": "dotnet",
+      "args": [
+        "clean",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "type": "process",
+      "problemMatcher": "$msCompile",
       "options": {
-        "cwd": "${workspaceFolder}/demo/GraphTutorial/bin/Debug/net5.0"
+        "cwd": "${workspaceFolder}/GraphSampleFunctions"
+      }
+    },
+    {
+      "label": "build (functions)",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "type": "process",
+      "dependsOn": "clean (functions)",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$msCompile",
+      "options": {
+        "cwd": "${workspaceFolder}/GraphSampleFunctions"
+      }
+    },
+    {
+      "label": "clean release (functions)",
+      "command": "dotnet",
+      "args": [
+        "clean",
+        "--configuration",
+        "Release",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "type": "process",
+      "problemMatcher": "$msCompile",
+      "options": {
+        "cwd": "${workspaceFolder}/GraphSampleFunctions"
+      }
+    },
+    {
+      "label": "publish (functions)",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "--configuration",
+        "Release",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "type": "process",
+      "dependsOn": "clean release (functions)",
+      "problemMatcher": "$msCompile",
+      "options": {
+        "cwd": "${workspaceFolder}/GraphSampleFunctions"
+      }
+    },
+    {
+      "type": "func",
+      "dependsOn": "build (functions)",
+      "options": {
+        "cwd": "${workspaceFolder}/GraphSampleFunctions/bin/Debug/net6.0"
       },
       "command": "host start",
       "isBackground": true,
-      "problemMatcher": "$func-watch"
+      "problemMatcher": "$func-dotnet-watch"
     }
   ]
 }
