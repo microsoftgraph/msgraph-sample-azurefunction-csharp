@@ -1,4 +1,19 @@
+---
+page_type: sample
+description:
+products:
+- ms-graph
+- microsoft-graph-mail-api
+- microsoft-graph-change-notifications-api
+- office-exchange-online
+- azure-functions
+languages:
+- csharp
+---
+
 # Microsoft Graph sample Azure Function
+
+[![.NET](https://github.com/microsoftgraph/msgraph-sample-azurefunction-csharp/actions/workflows/dotnet.yml/badge.svg)](https://github.com/microsoftgraph/msgraph-sample-azurefunction-csharp/actions/workflows/dotnet.yml)![License.](https://img.shields.io/badge/license-MIT-green.svg)
 
 This sample demonstrates how to use the Microsoft Graph .NET SDK to access data in Office 365 from Azure Functions.
 
