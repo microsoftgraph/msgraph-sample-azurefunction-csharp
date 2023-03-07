@@ -34,7 +34,7 @@ namespace GraphSampleFunctions
             _logger.LogInformation("Notify function triggered.");
 
             // Is this a validation request?
-            // https://docs.microsoft.com/graph/webhooks#notification-endpoint-validation
+            // https://learn.microsoft.com/graph/webhooks#notification-endpoint-validation
             if (req.FunctionContext.BindingContext.BindingData
                 .TryGetValue("validationToken", out object? validationToken))
             {
