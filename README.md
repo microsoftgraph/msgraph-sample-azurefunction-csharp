@@ -21,7 +21,7 @@ This sample demonstrates how to use the Microsoft Graph .NET SDK to access data 
 
 ## Prerequisites
 
-- [.NET Core SDK](https://dotnet.microsoft.com/download)
+- [.NET SDK](https://dotnet.microsoft.com/download)
 - [Azure Functions Core Tools](https://docs.microsoft.com/azure/azure-functions/functions-run-local)
 - [ngrok](https://ngrok.com/)
 
