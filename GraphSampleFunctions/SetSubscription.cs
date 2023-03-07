@@ -3,11 +3,12 @@
 
 using System.Globalization;
 using System.Net;
+using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using GraphSampleFunctions.Models;
 using GraphSampleFunctions.Services;
 
@@ -56,8 +57,7 @@ namespace GraphSampleFunctions
             }
 
             // Get the POST body
-            var payload = graphClient.HttpProvider.Serializer
-                .DeserializeObject<SetSubscriptionPayload>(req.Body);
+            var payload = await req.ReadFromJsonAsync<SetSubscriptionPayload>();
             if (payload == null)
             {
                 var response = req.CreateResponse(HttpStatusCode.BadRequest);
@@ -91,11 +91,10 @@ namespace GraphSampleFunctions
 
                 // POST /subscriptions
                 var createdSubscription = await graphClient.Subscriptions
-                    .Request()
-                    .AddAsync(subscription);
+                    .PostAsync(subscription);
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
-                await response.WriteAsJsonAsync<Subscription>(createdSubscription);
+                await response.WriteAsJsonAsync<Subscription?>(createdSubscription);
                 return response;
             }
             else
@@ -111,7 +110,6 @@ namespace GraphSampleFunctions
 
                 // DELETE /subscriptions/subscriptionId
                 await graphClient.Subscriptions[payload.SubscriptionId]
-                    .Request()
                     .DeleteAsync();
 
                 return req.CreateResponse(HttpStatusCode.Accepted);

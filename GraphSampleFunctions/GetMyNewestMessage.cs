@@ -5,7 +5,7 @@ using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using GraphSampleFunctions.Services;
 
 namespace GraphSampleFunctions
@@ -51,28 +51,23 @@ namespace GraphSampleFunctions
             // Get the user's newest message in inbox
             // GET /me/mailFolders/inbox/messages
             var messagePage = await graphClient.Me
-                .MailFolders
-                .Inbox
+                .MailFolders["Inbox"]
                 .Messages
-                .Request()
-                // Limit the fields returned
-                .Select(m => new
+                .GetAsync(config =>
                 {
-                    m.From,
-                    m.ReceivedDateTime,
-                    m.Subject
-                })
-                // Sort by received time, newest on top
-                .OrderBy("receivedDateTime DESC")
-                // Only get back one (the newest) message
-                .Top(1)
-                .GetAsync();
+                    // Limit the fields returned
+                    config.QueryParameters.Select = new[] { "from", "receivedDateTime", "subject" };
+                    // Sort by received time, newest on top
+                    config.QueryParameters.Orderby = new[] { "receivedDateTime DESC" };
+                    // Only get back one (the newest) message
+                    config.QueryParameters.Top = 1;
+                });
 
-            if (messagePage.CurrentPage.Count > 0)
+            if (messagePage?.Value?.Count > 0)
             {
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 // Return the message in the response
-                await response.WriteAsJsonAsync<Message>(messagePage.CurrentPage[0]);
+                await response.WriteAsJsonAsync<Message>(messagePage.Value.First());
                 return response;
             }
 

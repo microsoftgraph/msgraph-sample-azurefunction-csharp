@@ -2,10 +2,14 @@
 // Licensed under the MIT license.
 
 using System.Net;
+using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Me.Messages.Item;
+using Microsoft.Kiota.Serialization.Json;
 using GraphSampleFunctions.Services;
 
 namespace GraphSampleFunctions
@@ -48,12 +52,16 @@ namespace GraphSampleFunctions
                 return req.CreateResponse(HttpStatusCode.InternalServerError);
             }
 
-            var notifications = graphClient.HttpProvider.Serializer
-                .DeserializeObject<ChangeNotificationCollection>(req.Body);
-
-            foreach (var notification in notifications.Value)
+            var payload = JsonDocument.Parse(req.Body);
+            var node = new JsonParseNode(payload.RootElement);
+            var notifications = node.GetObjectValue<ChangeNotificationCollectionResponse>(
+                ChangeNotificationCollectionResponse.CreateFromDiscriminatorValue);
+            if (notifications?.Value != null)
             {
-                await ProcessNotificationAsync(graphClient, notification);
+                foreach (var notification in notifications?.Value!)
+                {
+                    await ProcessNotificationAsync(graphClient, notification);
+                }
             }
 
             // Return 202 per docs
@@ -68,19 +76,17 @@ namespace GraphSampleFunctions
             // message, including the user ID and message ID. Since we
             // have the URL, use a MessageRequestBuilder instead of the fluent
             // API
-            var msgRequestBuilder = new MessageRequestBuilder(
+            var msgRequestBuilder = new MessageItemRequestBuilder(
                 $"https://graph.microsoft.com/v1.0/{notification.Resource}",
-                graphClient);
+                graphClient.RequestAdapter);
 
-            var message = await msgRequestBuilder.Request()
-                .Select(m => new
-                {
-                    m.Subject
-                })
-                .GetAsync();
+            var message = await msgRequestBuilder.GetAsync(config =>
+            {
+                config.QueryParameters.Select = new[] { "subject" };
+            });
 
             _logger.LogInformation($"The following message was {notification.ChangeType}:");
-            _logger.LogInformation($"Subject: {message.Subject}, ID: {message.Id}");
+            _logger.LogInformation($"Subject: {message?.Subject}, ID: {message?.Id}");
         }
     }
 }
