@@ -17,12 +17,12 @@ languages:
 
 This sample demonstrates how to use the Microsoft Graph .NET SDK to access data in Office 365 from Azure Functions.
 
-> **NOTE:** This sample was originally built from a tutorial published on the [Microsoft Graph tutorials](https://docs.microsoft.com/graph/tutorials) page. That tutorial has been removed.
+> **NOTE:** This sample was originally built from a tutorial published on the [Microsoft Graph tutorials](https://learn.microsoft.com/graph/tutorials) page. That tutorial has been removed.
 
 ## Prerequisites
 
-- [.NET Core SDK](https://dotnet.microsoft.com/download)
-- [Azure Functions Core Tools](https://docs.microsoft.com/azure/azure-functions/functions-run-local)
+- [.NET SDK](https://dotnet.microsoft.com/download)
+- [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
 - [ngrok](https://ngrok.com/)
 
 ## App registrations
@@ -30,8 +30,8 @@ This sample demonstrates how to use the Microsoft Graph .NET SDK to access data 
 This sample requires three Azure AD application registrations:
 
 - An app registration for the single-page application so that it can sign in users and get tokens allowing the application to call the Azure Function.
-- An app registration for the Azure Function that allows it to use the [on-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow) to exchange the token sent by the SPA for a token that will allow it to call Microsoft Graph.
-- An app registration for the Azure Function webhook that allows it to use the [client credential flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow) to call Microsoft Graph without a user.
+- An app registration for the Azure Function that allows it to use the [on-behalf-of flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow) to exchange the token sent by the SPA for a token that will allow it to call Microsoft Graph.
+- An app registration for the Azure Function webhook that allows it to use the [client credential flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow) to call Microsoft Graph without a user.
 
 > **NOTE**
 > This example requires three app registrations because it is implementing both the on-behalf-of flow and the client credential flow. If your Azure Function only uses one of these flows, you would only need to create the app registrations that correspond to that flow.
@@ -94,7 +94,7 @@ This sample requires three Azure AD application registrations:
 1. Locate `knownClientApplications` in the manifest, and replace it's current value of `[]` with `["TEST_APP_ID"]`, where `TEST_APP_ID` is the application ID of the **Graph Azure Function Test App** app registration. Select **Save**.
 
 > **NOTE**
-> Adding the test application's app ID to the `knownClientApplications` property in the Azure Function's manifest allows the test application to trigger a [combined consent flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). This is necessary for the on-behalf-of flow to work.
+> Adding the test application's app ID to the `knownClientApplications` property in the Azure Function's manifest allows the test application to trigger a [combined consent flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#default-and-combined-consent). This is necessary for the on-behalf-of flow to work.
 
 ### Add Azure Function scope to test application registration
 
