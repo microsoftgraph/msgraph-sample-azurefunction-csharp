@@ -2,14 +2,13 @@
 // Licensed under the MIT license.
 
 using System.Net;
-using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Me.Messages.Item;
-using Microsoft.Kiota.Serialization.Json;
+using Microsoft.Kiota.Abstractions.Serialization;
 using GraphSampleFunctions.Services;
 
 namespace GraphSampleFunctions
@@ -52,10 +51,7 @@ namespace GraphSampleFunctions
                 return req.CreateResponse(HttpStatusCode.InternalServerError);
             }
 
-            var payload = JsonDocument.Parse(req.Body);
-            var node = new JsonParseNode(payload.RootElement);
-            var notifications = node.GetObjectValue<ChangeNotificationCollectionResponse>(
-                ChangeNotificationCollectionResponse.CreateFromDiscriminatorValue);
+            var notifications = GetNotificationsFromRequest(req);
             if (notifications?.Value != null)
             {
                 foreach (var notification in notifications?.Value!)
@@ -66,6 +62,14 @@ namespace GraphSampleFunctions
 
             // Return 202 per docs
             return req.CreateResponse(HttpStatusCode.Accepted);
+        }
+
+        private ChangeNotificationCollectionResponse? GetNotificationsFromRequest(HttpRequestData req)
+        {
+            return ParseNodeFactoryRegistry.DefaultInstance
+                .GetRootParseNode("application/json", req.Body)
+                .GetObjectValue<ChangeNotificationCollectionResponse>(
+                    ChangeNotificationCollectionResponse.CreateFromDiscriminatorValue);
         }
 
         private async Task ProcessNotificationAsync(
