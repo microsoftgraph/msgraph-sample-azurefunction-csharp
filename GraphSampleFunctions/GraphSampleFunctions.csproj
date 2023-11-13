@@ -13,7 +13,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.15.1" OutputItemType="Analyzer" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Graph" Version="5.33.0" />
+    <PackageReference Include="Microsoft.Graph" Version="5.34.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
