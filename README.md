@@ -4,7 +4,6 @@ description: This sample demonstrates how to use the Microsoft Graph .NET SDK to
 products:
 - ms-graph
 - microsoft-graph-mail-api
-- microsoft-graph-change-notifications-api
 - office-exchange-online
 - azure-functions
 languages:
